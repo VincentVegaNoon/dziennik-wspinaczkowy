@@ -137,6 +137,13 @@ details.arch summary{cursor:pointer;list-style:none;display:flex;align-items:cen
 .hwtop{display:flex;justify-content:space-between;align-items:baseline;gap:10px}.hwtop .mut{white-space:nowrap}.hwtop b{font:700 22px var(--disp);text-transform:uppercase;letter-spacing:.04em}
 .hwdays{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:12px}.hwd{display:flex;flex-direction:column;align-items:center;gap:6px}.hwd small{font-size:12px;color:var(--mut)}
 .hwd i{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;border:2px solid var(--ln);font:700 14px var(--disp);font-style:normal;color:#fff}.hwd.today i{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 25%,transparent)}.hwd.fut i{border-style:dashed;opacity:.6}
+.drrow{border-top:1px solid var(--ln);padding:2px 0}.drrow:first-child{border-top:0;margin-top:8px}
+.drrow summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 2px;min-height:48px}
+.drrow summary::-webkit-details-marker{display:none}
+.drrow summary>span{display:flex;flex-direction:column;gap:2px;min-width:0}.drrow summary b{overflow-wrap:anywhere}
+.drrow summary::after{content:'';width:9px;height:9px;border-right:2px solid var(--mut);border-bottom:2px solid var(--mut);transform:rotate(45deg);flex-shrink:0;margin-right:6px;transition:transform .15s}
+.drrow[open] summary::after{transform:rotate(-135deg)}.drrow[open]{padding-bottom:12px}.drrow.open{padding:12px 0}
+.drmore{width:100%;margin-top:8px;background:transparent;border:1px dashed var(--ln)}
 .tcard{box-shadow:inset 6px 0 0 var(--tc),var(--cardsh)}.tlast{background:linear-gradient(135deg,color-mix(in srgb,var(--tc) 22%,var(--p)),var(--p) 70%)}
 .wchip{background:color-mix(in srgb,var(--tc) 26%,var(--p))!important;color:var(--ink)}
 .hweek{background:linear-gradient(135deg,color-mix(in srgb,var(--c5) 18%,var(--p)),var(--p) 70%)}
@@ -809,16 +816,30 @@ function phSave(id,isNew){const cy=ecy(),n=$('#pe-n').value.trim(),s0=$('#pe-s')
  if(isNew)cy.phases.push(ph);else cy.phases=cy.phases.map(q=>q.id==id?ph:q);cy.phases.sort(bySD);closeSheet();putC(1);toast(isNew?'Dodano fazę':'Zapisano fazę')}
 /* ---------- drills ---------- */
 function drUse(name){const n=name.toLowerCase(),u=done().filter(s=>splitDr(s.drill).some(x=>x.toLowerCase()==n)).map(s=>s.date).sort();return{n:u.length,last:u[u.length-1]}}
-function drView(){const lib=[...C.drills].sort((a,b)=>a.name.localeCompare(b.name,'pl'));
- let h=`<div class="card" style="--sc:var(--c7);--sct:24%"><h2>Dodaj drill</h2><label for="dr-name">Nazwa</label><input id="dr-name" placeholder="np. Silent feet">
+let DRS={q:'',sort:'last',all:false,add:false};
+function drView(){
+ let h=DRS.add?`<div class="card" style="--sc:var(--c7);--sct:24%"><h2>Nowy drill</h2><label for="dr-name">Nazwa</label><input id="dr-name" placeholder="np. Silent feet">
  <label for="dr-desc">Opis <span class="mut">opcjonalnie: jak go robić, na co uważać</span></label><textarea id="dr-desc" rows="2"></textarea>
- <div class="btns"><button class="go" data-act="dradd">Dodaj do listy</button></div></div>`;
- h+=lib.length?lib.map(d=>{const u=drUse(d.name);
-  if(drEdit==d.id)return `<div class="card"><label for="dre-name">Nazwa</label><input id="dre-name" value="${esc(d.name)}"><label for="dre-desc">Opis</label><textarea id="dre-desc" rows="3">${esc(d.desc)}</textarea><p class="mut">Zmiana nazwy nie zmienia wpisów w zapisanych sesjach.</p><div class="btns"><button class="go" data-act="drsave" data-id="${d.id}">Zapisz</button><button data-act="drcancel">Anuluj</button></div></div>`;
-  return `<div class="card tcard" style="--tc:var(--c7)"><div class="h"><div><b>${esc(d.name)}</b><p class="mut">${u.n?`Robiony ${u.n} ${u.n==1?'raz':'razy'}, ostatnio ${fdw(u.last)} (${diff(u.last,T)} dni temu)`:'Jeszcze nie robiony'}</p></div><div class="acts"><button data-act="dredit" data-id="${d.id}">Edytuj</button><button data-act="drdel" data-id="${d.id}">Usuń</button></div></div>${d.desc?`<p class="note">${esc(d.desc)}</p>`:''}</div>`}).join('')
-  :'<div class="card"><p>Lista drilli jest pusta.</p><p class="mut">Dodaj pierwszy drill powyżej. Potem wybierzesz go jednym kliknięciem przy zapisie sesji.</p></div>';
- const al=[...C.accLib].sort((x,y)=>x.localeCompare(y,'pl'));h+=`<h2 style="margin:26px 4px 6px">Ćwiczenia akcesoryjne</h2><div class="card" style="--sc:var(--c4);--sct:22%"><p class="mut">Lista do szybkiego wyboru przy zapisie sesji. Nowe ćwiczenie dodaje się samo, gdy wpiszesz je w sesji.</p>${al.length?al.map(n=>{const u=done().filter(x=>(x.accs||[]).some(a=>a.name.toLowerCase()==n.toLowerCase())),l=lastAcc(n);return `<div class="h" style="margin:12px 0"><div><b>${esc(n)}</b><p class="mut">${u.length?`${u.length} ${plS(u.length)}, ostatnio ${accTxt(l).replace(esc(n),'').replace(/^ ?,? ?/,'')||'bez parametrów'}`:'Jeszcze nie robione'}</p></div><button class="rmb" data-act="acdel" data-n="${esc(n)}"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3\"/></svg>Usuń</button></div>`}).join(''):'<p>Brak ćwiczeń.</p>'}</div>`;
- $('#v-dr').innerHTML=h}
+ <div class="btns"><button class="go" data-act="dradd">Dodaj do listy</button><button data-act="draddx">Anuluj</button></div></div>`:`<button class="phadd" style="margin:0 0 14px;width:100%" data-act="draddopen">+ Nowy drill</button>`;
+ h+=`<div class="card drcard"><div class="h"><h2 style="margin:0">Drille <span class="mut" style="font:400 15px var(--body)">${C.drills.length}</span></h2></div>`;
+ if(C.drills.length>5)h+=`<input id="dr-q" type="search" placeholder="Szukaj drilla" value="${esc(DRS.q)}" autocomplete="off" style="margin-top:12px">`;
+ if(C.drills.length>1)h+=`<div class="chips" style="margin-top:10px">${[['last','Ostatnio robione'],['freq','Najczęściej'],['az','A–Z']].map(x=>`<button class="pill" data-act="drsort" data-v="${x[0]}" aria-pressed="${DRS.sort==x[0]}">${x[1]}</button>`).join('')}</div>`;
+ h+=`<div id="drlist"></div></div>`;
+ $('#v-dr').innerHTML=h;drList();accView();if(DRS.add)setTimeout(()=>{const i=$('#dr-name');if(i)i.focus()},30)}
+function drList(){const el=$('#drlist');if(!el)return;const q=DRS.q.trim().toLowerCase();
+ let lib=C.drills.map(d=>({d,u:drUse(d.name)})).filter(x=>!q||x.d.name.toLowerCase().includes(q)||(x.d.desc||'').toLowerCase().includes(q));
+ const az=(a,b)=>a.d.name.localeCompare(b.d.name,'pl');
+ lib.sort(DRS.sort=='az'?az:DRS.sort=='freq'?(a,b)=>b.u.n-a.u.n||az(a,b):(a,b)=>(b.u.last||'').localeCompare(a.u.last||'')||az(a,b));
+ if(!C.drills.length){el.innerHTML='<p>Lista drilli jest pusta.</p><p class="mut">Dodaj pierwszy drill. Potem wybierzesz go jednym kliknięciem przy zapisie sesji.</p>';return}
+ if(!lib.length){el.innerHTML=`<p class="mut" style="margin-top:12px">Brak drilli pasujących do „${esc(DRS.q)}”.</p>`;return}
+ const LIM=8,show=q||DRS.all?lib:lib.slice(0,LIM);
+ el.innerHTML=show.map(({d,u})=>{
+  if(drEdit==d.id)return `<div class="drrow open"><label for="dre-name">Nazwa</label><input id="dre-name" value="${esc(d.name)}"><label for="dre-desc">Opis</label><textarea id="dre-desc" rows="3">${esc(d.desc)}</textarea><p class="mut">Zmiana nazwy nie zmienia wpisów w zapisanych sesjach.</p><div class="btns"><button class="go" data-act="drsave" data-id="${d.id}">Zapisz</button><button data-act="drcancel">Anuluj</button></div></div>`;
+  return `<details class="drrow"><summary><span><b>${esc(d.name)}</b><span class="mut">${u.n?`${u.n}× · ostatnio ${fd(u.last)}${diff(u.last,T)<=14?` (${diff(u.last,T)==0?'dziś':diff(u.last,T)+' dni temu'})`:''}`:'jeszcze nie robiony'}</span></span></summary>${d.desc?`<p class="note">${esc(d.desc)}</p>`:'<p class="mut">Bez opisu.</p>'}<div class="btns"><button data-act="dredit" data-id="${d.id}">Edytuj</button><button data-act="drdel" data-id="${d.id}">Usuń</button></div></details>`}).join('')
+  +(show.length<lib.length?`<button class="drmore" data-act="drall">Pokaż wszystkie (${lib.length})</button>`:!q&&DRS.all&&lib.length>LIM?`<button class="drmore" data-act="drall">Zwiń listę</button>`:'')}
+function accView(){
+ let h='';const al=[...C.accLib].sort((x,y)=>x.localeCompare(y,'pl'));h+=`<h2 style="margin:26px 4px 6px">Ćwiczenia akcesoryjne</h2><div class="card" style="--sc:var(--c4);--sct:22%"><p class="mut">Lista do szybkiego wyboru przy zapisie sesji. Nowe ćwiczenie dodaje się samo, gdy wpiszesz je w sesji.</p>${al.length?al.map(n=>{const u=done().filter(x=>(x.accs||[]).some(a=>a.name.toLowerCase()==n.toLowerCase())),l=lastAcc(n);return `<div class="h" style="margin:12px 0"><div><b>${esc(n)}</b><p class="mut">${u.length?`${u.length} ${plS(u.length)}, ostatnio ${accTxt(l).replace(esc(n),'').replace(/^ ?,? ?/,'')||'bez parametrów'}`:'Jeszcze nie robione'}</p></div><button class="rmb" data-act="acdel" data-n="${esc(n)}"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3\"/></svg>Usuń</button></div>`}).join(''):'<p>Brak ćwiczeń.</p>'}</div>`;
+ $('#v-dr').insertAdjacentHTML('beforeend',h)}
 
 /* ---------- session preview ---------- */
 function view(id){const s=byId(id);if(!s)return;const isP=s.status=='plan',GC={G:'--c1',Y:'--c2',R:'--c3'};
@@ -915,7 +936,11 @@ document.addEventListener('click',e=>{const t=e.target;let b;
    $('#dat').value='';toast(`Wczytano: ${arr.length} ${plS(arr.length)}${vc?' i ustawienia cyklu':''}`)})()}
  else if(a=='dradd'){const n=$('#dr-name').value.trim();if(!n){toast('Wpisz nazwę drilla.');$('#dr-name').focus();return}
   if(C.drills.some(d=>d.name.toLowerCase()==n.toLowerCase())){toast('Ten drill jest już na liście.');return}
-  C.drills.push({id:uid(),name:n,desc:$('#dr-desc').value.trim()});putC();toast('Dodano drill')}
+  C.drills.push({id:uid(),name:n,desc:$('#dr-desc').value.trim()});DRS.add=false;putC();toast('Dodano drill')}
+ else if(a=='draddopen'){DRS.add=true;drView()}
+ else if(a=='draddx'){DRS.add=false;drView()}
+ else if(a=='drsort'){DRS.sort=b.dataset.v;drView()}
+ else if(a=='drall'){DRS.all=!DRS.all;drList()}
  else if(a=='dredit'){drEdit=id;drView()}
  else if(a=='drcancel'){drEdit=null;drView()}
  else if(a=='acdel'){if(b.dataset.arm){C.accLib=C.accLib.filter(x=>x!=b.dataset.n);putC();toast('Usunięto z listy')}else{b.dataset.arm=1;b.lastChild.textContent='Na pewno?'}}
@@ -955,7 +980,7 @@ document.addEventListener('change',e=>{const t=e.target,k=t.dataset&&t.dataset.n
  const mx=+t.dataset.max,mn=+(t.dataset.min||0);if(mx&&x>mx)x=mx;if(x<mn)x=mn;const nv=k=='int'?String(Math.round(x)):String(x).replace('.',',');if(nv!==t.value.replace(/[.,]$/,'')||/[.,]$/.test(t.value)){t.value=nv;t.dispatchEvent(new Event('input',{bubbles:true}))}},true);
 document.addEventListener('focusout',e=>{const t=e.target;if(t.classList&&t.classList.contains('lvin')){const l=t.id.slice(2);t.value=F.lv[l]||0}});
 document.addEventListener('focusin',e=>{if(e.target.classList&&e.target.classList.contains('lvin'))setTimeout(()=>e.target.select(),0)});
-document.addEventListener('input',e=>{if(e.target.id=='hf-q'){HF.q=e.target.value;saveHF();clearTimeout(hList.t);hList.t=setTimeout(()=>{hList();const n=$('#hfilt h2');},150);return}if(e.target.closest('#v-cyc'))cdirty=true;else if(['grip','pct'].includes(e.target.id))tqUpdate();else if(/^lv\d$/.test(e.target.id)){const l=e.target.id.slice(2),v=parseInt(e.target.value,10);F.lv[l]=isNaN(v)||v<0?0:v;e.target.classList.toggle('on',F.lv[l]>0);$('#captot').textContent=sum(Object.values(F.lv))}else if(e.target.id=='date')gdUpdate()});
+document.addEventListener('input',e=>{if(e.target.id=='dr-q'){DRS.q=e.target.value;drList();return}if(e.target.id=='hf-q'){HF.q=e.target.value;saveHF();clearTimeout(hList.t);hList.t=setTimeout(()=>{hList();const n=$('#hfilt h2');},150);return}if(e.target.closest('#v-cyc'))cdirty=true;else if(['grip','pct'].includes(e.target.id))tqUpdate();else if(/^lv\d$/.test(e.target.id)){const l=e.target.id.slice(2),v=parseInt(e.target.value,10);F.lv[l]=isNaN(v)||v<0?0:v;e.target.classList.toggle('on',F.lv[l]>0);$('#captot').textContent=sum(Object.values(F.lv))}else if(e.target.id=='date')gdUpdate()});
 loadLocal();form(null,'new');renderData();cycleView();show('home');ddEnhance();initAuth();
 </script>
 
