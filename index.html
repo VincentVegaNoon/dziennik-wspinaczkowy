@@ -745,7 +745,7 @@ function cycleView(){const cy=ecy(),isAct=cy.id==C.active,ps=[...cy.phases].sort
  const prev=others[0],pn=prev?[...prev.phases].sort(bySD).filter(p=>p.note):[];
  if(isAct&&pn.length&&cStart(cy)>cEnd(prev))h+=notesCard({t:'Wnioski z cyklu '+prev.name,ps:pn});
  const wk_=ps.length?Math.ceil((diff(cStart(cy),end)+1)/7):0;
- h+=`<div class="cyhead"><div><p class="mut">${isAct?'Aktywny cykl':'Cykl z archiwum'}${ps.length?`, ${fd(cStart(cy))}–${fd(end)}, ${wk_} tyg.`:''}</p><h2>${esc(cy.name)}</h2>${cy.goal||cy.goalDate?`<p class="cygoal">${esc(cy.goal||'Cel')}${cy.goalDate?`, ${fd(cy.goalDate)}${cy.goalDate>=T?` (za ${diff(T,cy.goalDate)} dni)`:''}`:''}</p>`:''}</div><button class="iconbtn" data-act="cycedit" aria-label="Edytuj nazwę i cel cyklu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14 6l4 4"/></svg></button></div>`;
+ h+=`<div class="cyhead"><div><p class="mut">${isAct?'Aktywny cykl':'Cykl z archiwum'}${ps.length?`, ${fd(cStart(cy))}–${fd(end)}, ${wk_} tyg.`:''}</p><h2>${esc(cy.name)}</h2>${cy.goal||cy.goalDate?`<p class="cygoal">${esc(cy.goal||'Cel')}${cy.goalDate?`, ${fd(cy.goalDate)}${cy.goalDate>=T?` (za ${diff(T,cy.goalDate)} dni)`:''}`:''}</p>`:''}</div><div style="display:flex;gap:8px">${ps.length?`<button class="iconbtn" data-act="csvcyc" aria-label="Eksportuj cykl do CSV (Excel)" title="Eksport cyklu do Excela (CSV)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg></button>`:''}<button class="iconbtn" data-act="cycedit" aria-label="Edytuj nazwę i cel cyklu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14 6l4 4"/></svg></button></div></div>`;
  if(last&&end<T)h+=`<div class="card warn"><b>${isAct?'Cykl':'Ten cykl'} zakończył się ${fdw(end)}.</b><p class="mut">Możesz go wznowić: przedłuż ostatnią fazę (${esc(last.n)}) albo dodaj nową fazę od dziś.</p><label for="ext">Przedłuż fazę ${esc(last.n)} do</label><input id="ext" type="date" value="${add(T,13)}"><div class="btns"><button data-act="extend">Przedłuż fazę</button><button data-act="phtoday">Dodaj fazę od dziś</button></div></div>`;
  h+='<div class="tline">';
  ps.forEach((p,i)=>{if(i){const g=diff(ps[i-1].e,p.s)-1;h+=`<div class="tgap">${g>0?`przerwa ${g} ${g==1?'dzień':'dni'}`:''}</div>`}
@@ -759,13 +759,27 @@ function cycleView(){const cy=ecy(),isAct=cy.id==C.active,ps=[...cy.phases].sort
  h+=`<details class="card arch"><summary><h2 style="margin:0;display:inline">Nowy cykl i archiwum</h2></summary><p class="mut" style="margin-top:10px">Nowy cykl przeniesie obecny do archiwum razem z wnioskami.</p><div class="btns"><button data-act="newcyc">Zacznij nowy cykl</button></div>
  ${others.length?`<h3 style="font:700 18px var(--disp);margin:18px 0 6px">Poprzednie cykle</h3>${others.map(o=>`<div class="h" style="margin:10px 0"><div><b>${esc(o.name)}</b><p class="mut">${o.phases.length?fd(cStart(o))+'–'+fd(cEnd(o))+', '+o.phases.length+' faz':'bez faz'}</p></div><div class="acts" style="flex-direction:row"><button data-act="editcyc" data-id="${o.id}">Pokaż</button><button data-act="setcyc" data-id="${o.id}">Wznów</button></div></div>`).join('')}`:''}</details>`;
  $('#v-cyc').innerHTML=h}
+/* ---------- eksport CSV (Excel: średnik, UTF-8 z BOM) ---------- */
+const txt=h=>{const d=document.createElement('div');d.innerHTML=h;return d.textContent.trim()};
+const csvCell=v=>{if(v==null)return '';if(typeof v=='number')return String(v).replace('.',',');v=String(v);return /[;"\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};
+const fdy=s=>s?s.slice(8,10)+'.'+s.slice(5,7)+'.'+s.slice(0,4):'';
+function csvRows(cy,ps){const R=[['Data','Dzień','Faza','Typ','Miejsce','Czas (min)','RPE','Obciążenie (min×RPE)','Przejścia Capacity','Wynik','Drill','Akcesoria','Skóra','Ból','Notatka']];
+ const ss=done().filter(x=>ps.some(p=>x.date>=p.s&&x.date<=p.e)).sort((a,b)=>a.date.localeCompare(b.date));
+ ss.forEach(x=>{const p=ps.find(q=>x.date>=q.s&&x.date<=q.e);R.push([fdy(x.date),WD[D(x.date).getDay()],p?p.n:'',x.type,x.place||'',x.min||null,x.rpe||null,x.min?ld(x):null,x.type=='Capacity'&&x.cap?capN(x):null,txt(summ(x)).replace(/^Razem \d+: /,''),x.drill||'',x.accs&&x.accs.length?txt(x.accs.map(accTxt).join('; ')):(x.acc||''),x.skin&&x.skin>1?SK[x.skin-1][1]:'',x.pain||'',x.note||''])});
+ R.push([]);R.push(['Podsumowanie faz']);R.push(['Faza','Od','Do','Tygodnie','Sesje','Godziny','Śr. RPE','Wnioski']);
+ ps.forEach(p=>{const st=pstat(p);R.push([p.n,fdy(p.s),fdy(p.e),Math.ceil((diff(p.s,p.e)+1)/7),st.n,+st.h.toFixed(1),st.rpe?+st.rpe.toFixed(1):null,p.note||''])});
+ if(ps.length>1){const all=ss.filter(x=>x.rpe);R.push(['Cały cykl',fdy(cStart(cy)),fdy(cEnd(cy)),Math.ceil((diff(cStart(cy),cEnd(cy))+1)/7),ss.length,+(sum(ss.map(x=>x.min))/60).toFixed(1),all.length?+(sum(all.map(x=>x.rpe))/all.length).toFixed(1):null,''])}
+ return R}
+function csvDownload(name,R){const body='\uFEFF'+R.map(r=>r.map(csvCell).join(';')).join('\r\n');
+ const fn=(name||'eksport').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ł/g,'l').replace(/Ł/g,'L').replace(/[^\w-]+/g,'-').replace(/^-+|-+$/g,'')+'.csv';
+ const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([body],{type:'text/csv;charset=utf-8'}));a.download=fn;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000);toast('Pobrano '+fn)}
 function openSheet(html){$('#sheetp').innerHTML=html;$('#sheet').hidden=false;document.body.style.overflow='hidden';$('#sheetp').scrollTop=0}
 const XBTN='<button class="sh-x" data-act="close" aria-label="Zamknij"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>';
 function phSheet(p,isNew){openSheet(`<div class="sh-top"><div><p class="mut">${esc(ecy().name)}</p><h2>${isNew?'Nowa faza':esc(p.n)}</h2></div>${XBTN}</div>
  <div class="row"><div><label for="pe-n">Nazwa fazy</label><input id="pe-n" value="${esc(p.n)}" placeholder="np. Capacity"></div><div><label for="pe-c">Kolor</label><select id="pe-c">${COL.map(c=>`<option value="${c[0]}"${c[0]==p.c?' selected':''}>${c[1]}</option>`).join('')}</select></div></div>
  <div class="row"><div><label for="pe-s">Początek</label><input id="pe-s" type="date" value="${p.s}"></div><div><label for="pe-e">Koniec</label><input id="pe-e" type="date" value="${p.e}"></div></div>
  <label for="pe-note">Wnioski po fazie</label><textarea id="pe-note" rows="5" placeholder="Co działało, co zmienić w następnym cyklu">${esc(p.note)}</textarea>
- <div class="btns"><button class="go" data-act="phsave" data-id="${p.id}"${isNew?' data-new="1"':''}>Zapisz fazę</button>${isNew?'':`<button class="rmb" style="flex:0 0 auto" data-act="phdel" data-id="${p.id}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>Usuń fazę</button>`}</div>`);setTimeout(()=>$('#pe-n').focus(),30)}
+ <div class="btns"><button class="go" data-act="phsave" data-id="${p.id}"${isNew?' data-new="1"':''}>Zapisz fazę</button>${isNew?'':`<button data-act="csvph" data-id="${p.id}" style="flex:0 0 auto">Eksport do Excela</button><button class="rmb" style="flex:0 0 auto" data-act="phdel" data-id="${p.id}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>Usuń fazę</button>`}</div>`);setTimeout(()=>$('#pe-n').focus(),30)}
 function cySheet(){const cy=ecy();openSheet(`<div class="sh-top"><div><p class="mut">Cykl</p><h2>Nazwa i cel</h2></div>${XBTN}</div>
  <label for="cy-name">Nazwa</label><input id="cy-name" value="${esc(cy.name)}">
  <div class="row"><div><label for="cy-goal">Cel <span class="mut">opcjonalnie</span></label><input id="cy-goal" placeholder="np. zawody, wyjazd w skały" value="${esc(cy.goal)}"></div><div><label for="cy-gdate">Data celu</label><input id="cy-gdate" type="date" value="${cy.goalDate||''}"></div></div>
@@ -895,6 +909,8 @@ document.addEventListener('click',e=>{const t=e.target;let b;
  else if(a=='setcyc'){C.active=id;cedit=null;cdirty=false;Cd=null;putC(1);toast('Cykl wznowiony')}
  else if(a=='editcyc'){cedit=id;cycleView();window.scrollTo(0,0)}
  else if(a=='cycedit')cySheet();
+ else if(a=='csvcyc'){const cy=ecy(),ps=[...cy.phases].sort(bySD);if(ps.length)csvDownload('dziennik-'+cy.name,csvRows(cy,ps))}
+ else if(a=='csvph'){const cy=ecy(),p=cy.phases.find(q=>q.id==id);if(p)csvDownload('dziennik-'+cy.name+'-'+p.n,csvRows(cy,[p]))}
  else if(a=='cysave'){const cy=ecy();cy.name=$('#cy-name').value.trim()||'Cykl';cy.goal=$('#cy-goal').value.trim();cy.goalDate=$('#cy-gdate').value;closeSheet();putC(1);toast('Zapisano cykl')}
  else if(a=='phedit'){const p=ecy().phases.find(q=>q.id==id);if(p)phSheet(p,false)}
  else if(a=='phnew'){const cy=ecy(),l=[...cy.phases].sort(bySD).pop(),st=l?add(l.e,1):T;phSheet({id:'',n:'',s:st,e:add(st,27),c:COL[cy.phases.length%COL.length][0],note:''},true)}
