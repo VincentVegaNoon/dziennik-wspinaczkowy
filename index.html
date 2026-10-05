@@ -251,6 +251,7 @@ svg{width:100%;height:auto;display:block}svg text{font-size:10px;fill:var(--mut)
 .wadd{border-radius:6px!important;width:34px!important;height:34px!important;min-height:34px!important;border:1px solid var(--ln)!important}
 .wrow:not(.today) .wadd{opacity:.5}.wrow:hover .wadd{opacity:1}
 .wkhead button{border-radius:6px!important}
+.wkhead button:disabled{opacity:.3;cursor:default;pointer-events:none}
 
 .typechips,.placechips{display:flex;flex-wrap:wrap;gap:6px}.placechips{margin-top:8px}
 .tchip,.pchip{min-height:40px;padding:6px 14px;border-radius:6px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:var(--ink);font-size:15px}
@@ -612,7 +613,7 @@ function weekView(){const w0=add(wk(T),7*weekOff),days=[...Array(7)].map((_,i)=>
  const inW=done().filter(x=>x.date>=w0&&x.date<=w6),dn=inW.filter(x=>x.status!='plan'),pl=inW.filter(x=>x.status=='plan');
  const restDays=days.filter(d=>d<T&&!dn.some(x=>x.date==d)).length,load=Math.round(sum(dn.map(ld)));
  const lbl=weekOff==0?'Ten tydzień':weekOff==-1?'Poprzedni tydzień':weekOff==1?'Następny tydzień':`${Math.abs(weekOff)} tyg. ${weekOff<0?'temu':'później'}`;
- let h=`<div class="card"><div class="wkhead"><button data-act="wkprev" aria-label="Poprzedni tydzień">‹</button><div><h2>${lbl}</h2><label class="wkpick" title="Wybierz datę z kalendarza"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg><span>${fd(w0)}–${fd(w6)}</span><input type="date" id="wkdate" aria-label="Przejdź do tygodnia z datą" max="${T}" value="${w0>T?T:w0}"></label>${weekOff?`<button class="sm wktoday" data-act="wktoday">Wróć do dziś</button>`:''}</div><button data-act="wknext" aria-label="Następny tydzień">›</button></div>
+ let h=`<div class="card"><div class="wkhead"><button data-act="wkprev" aria-label="Poprzedni tydzień"${w0<=wk(minD0())?' disabled':''}>‹</button><div><h2>${lbl}</h2><label class="wkpick" title="Wybierz datę z kalendarza"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg><span>${fd(w0)}–${fd(w6)}</span><input type="date" id="wkdate" aria-label="Przejdź do tygodnia z datą" min="${minD0()}" max="${T}" value="${w0>T?T:w0<minD0()?minD0():w0}"></label>${weekOff?`<button class="sm wktoday" data-act="wktoday">Wróć do dziś</button>`:''}</div><button data-act="wknext" aria-label="Następny tydzień">›</button></div>
  <p class="wksum"><b>${dn.length}</b> ${plS(dn.length)}${days[0]<T?`, <b>${restDays}</b> ${restDays==1?'dzień':'dni'} odpoczynku`:''}</p>${(()=>{const mins=sum(dn.map(x=>x.min)),av=avgWeek(w0);return mins?`<p class="wksum" style="margin-top:-6px">Trening <b>${hm(mins)}</b>${av&&load?`, obciążenie <b>${Math.round(load/av*100)}%</b> Twojego średniego tygodnia${w6>=T&&w0<=T?' (na razie)':''}`:''}</p>`:''})()}<div class="wk">`;
  const GC={G:'var(--c1)',Y:'var(--c2)',R:'var(--c3)'};
  days.forEach(d=>{const p=phAny(d),ss=inW.filter(x=>x.date==d).sort((a,b)=>(a.status=='plan')-(b.status=='plan')),past=d<T,today=d==T;
@@ -878,7 +879,7 @@ document.addEventListener('click',e=>{const t=e.target;let b;
  else if(a=='cancel'){const m=F.mode;clearDraft();form(null,'new');show(m=='edit'||m=='archive'?'his':'home')}
  else if(a=='theme'){themePref={auto:'light',light:'dark',dark:'auto'}[themePref];try{localStorage.setItem('climb.theme',themePref)}catch(e){}applyTheme();head();toast('Motyw: '+THN[themePref])}
  else if(a=='wktoday'){weekOff=0;planView()}
- else if(a=='wkprev'){weekOff--;planView()}
+ else if(a=='wkprev'){if(add(wk(T),7*weekOff)<=wk(minD0()))return;weekOff--;planView()}
  else if(a=='wknext'){weekOff++;planView()}
  else if(a=='addday'){const d=b.dataset.date;form(null,d<=T?'new':'plan-new',d);show('add')}
  else if(a=='hreset'){HF={cyc:'all',ph:'all',types:[],place:'',day:'',q:'',asc:HF.asc,open:HF.open};saveHF();hFilters();hList()}
@@ -943,7 +944,7 @@ document.addEventListener('input',e=>{if(e.target.closest&&e.target.closest('#v-
 document.addEventListener('change',e=>{if(e.target.closest&&e.target.closest('#v-add'))saveDraft()},true);
 document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('#v-add button');if(t&&!['save-done','save-plan','cancel'].includes(t.dataset.act))setTimeout(saveDraft,0)});
 document.addEventListener('input',e=>{if(e.target.id=='date')document.querySelectorAll('[data-setdate]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.setdate==e.target.value))});
-document.addEventListener('change',e=>{if(e.target.id=='wkdate'&&e.target.value){weekOff=Math.round(diff(wk(T),wk(e.target.value))/7);planView()}});
+document.addEventListener('change',e=>{if(e.target.id=='wkdate'&&e.target.value){if(e.target.value<minD0())e.target.value=minD0();weekOff=Math.round(diff(wk(T),wk(e.target.value))/7);planView()}});
 document.addEventListener('click',e=>{const l=e.target.closest('.wkpick');if(l){const i=l.querySelector('input');try{i.showPicker();e.preventDefault()}catch(er){}}});
 document.addEventListener('click',e=>{const i=e.target;if(i.tagName=='INPUT'&&i.type=='date'&&i.id!='wkdate'){try{i.showPicker()}catch(er){}}});
 document.addEventListener('focusout',e=>{const t=e.target;if(t.classList&&t.classList.contains('lvin')){const l=t.id.slice(2);t.value=F.lv[l]||0}});
