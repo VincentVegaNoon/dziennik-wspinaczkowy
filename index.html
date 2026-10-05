@@ -383,7 +383,9 @@ const phOf=(d,cy=cyc())=>cy?cy.phases.find(p=>d>=p.s&&d<=p.e):null;
 const phAny=d=>phOf(d)||C.cycles.map(c=>phOf(d,c)).find(Boolean);
 const cEnd=c=>c.phases.reduce((m,p)=>p.e>m?p.e:m,''),cStart=c=>c.phases.reduce((m,p)=>!m||p.s<m?p.s:m,'');
 const eff=s=>{if(s.rpe)return s.rpe;const a=done().filter(x=>x.type==s.type&&x.rpe&&x.date<=s.date).sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5).map(x=>x.rpe).sort((a,b)=>a-b);return a.length?a[a.length>>1]:7};
-const ld=s=>(s.min||0)*eff(s),capN=s=>s.cap?sum(Object.values(s.cap)):0;
+const RLEN={1:120,2:180,3:270};
+const estMin=s=>{if(s.min)return s.min;if(s.type=='Skały')return RLEN[s.rlen||2];if(s.type=='Tindeq')return 20;const m=done().filter(x=>x.type==s.type&&x.min).map(x=>x.min).sort((a,b)=>a-b);return m.length?m[m.length>>1]:60};
+const ld=s=>estMin(s)*eff(s),capN=s=>s.cap?sum(Object.values(s.cap)):0;
 const limTop=s=>{const t=(s.lim||[]).filter(r=>r.top&&r.lv!=null).map(r=>r.lv);if(s.limOld&&s.limOld.top!=null)t.push(s.limOld.top);return t.length?Math.max(...t):0};
 
 /* ---------- storage: Supabase (each user sees only own rows, enforced by RLS) ---------- */
@@ -430,7 +432,7 @@ function lastAcc(name){const n=name.toLowerCase();for(const x of done().sort((a,
 function tbRow(r={}){return `<div class="tbr"><div class="rtop"><input aria-label="Nazwa bouldera" placeholder="Nazwa" value="${esc(r.name)}"><button type="button" class="rmb" data-act="rmtb" aria-label="Usuń boulder"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>Usuń</button></div><select aria-label="Wycena">${VG.map((v,i)=>`<option value="${i}"${r.g==i||(r.g==null&&i==3)?' selected':''}>${v} (${VF[i]})</option>`).join('')}</select><input type="number" inputmode="numeric" min="1" aria-label="Próby" placeholder="Próby" value="${r.tries??''}"><label class="chk"><input type="checkbox"${r.top!==false?' checked':''}>Top</label></div>`}
 function form(src,mode,pdate){const v=src||{},isPlan=mode.startsWith('plan');
  const vd=splitDr(v.drill),libN=C.drills.map(d=>d.name.toLowerCase());
- F={mode,id:(mode=='new'||mode=='archive'||mode=='plan-new')?null:v.id,rpe:v.rpe??null,before:v.before??null,skin:v.skin??null,painB:v.painB??null,lv:{1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0,9:0,...(v.cap||{})},drills:vd.filter(x=>libN.includes(x.toLowerCase()))};
+ F={rlen:v.rlen??2,mode,id:(mode=='new'||mode=='archive'||mode=='plan-new')?null:v.id,rpe:v.rpe??null,before:v.before??null,skin:v.skin??null,painB:v.painB??null,lv:{1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0,9:0,...(v.cap||{})},drills:vd.filter(x=>libN.includes(x.toLowerCase()))};
  const otherDr=vd.filter(x=>!libN.includes(x.toLowerCase())).join(', ');
  const minD='';let date=v.date||pdate||(mode=='archive'?add(minD0(),-1):T);if(date>T)date=T;if(minD&&date<minD)date=minD;F.minD=minD;
  const ti=v.tind||{},pw=v.pw||{},grips=[...new Set(done().map(s=>s.tind&&s.tind.grip).filter(Boolean))];
@@ -460,7 +462,7 @@ function form(src,mode,pdate){const v=src||{},isPlan=mode.startsWith('plan');
  <div class="row">${n('tsets','Serie',ti.sets)}${n('treps','Powtórzenia w serii',ti.reps)}${n('tl','Lewa (kg)',ti.l)}${n('tr','Prawa (kg)',ti.r)}${n('sec','Czas zwisu (s)',ti.sec)}${n('pct','% maxa',ti.pct)}</div><div id="tqmax"></div>
  <label class="chk" style="margin-top:12px"><input type="checkbox" id="istest"${ti.test?' checked':''}>To był test maxa (zapisze nowy max dla tego chwytu)</label></div>
  <div class="card" data-t="Tension Board|Kilter Board"><h2 id="tbh">Tension Board</h2><div class="row">${n('ang','Kąt (°)',pw.ang)}</div>${pw.hard&&!(pw.probs&&pw.probs.length)?`<p class="mut">Stary zapis: ${pw.pass??'?'} przejść, najtrudniejsze ${esc(pw.hard)}.</p>`:''}<label>Bouldery <span class="mut">nazwa (opcjonalnie), wycena, próby, top</span></label><div id="tbrows">${(pw.probs&&pw.probs.length?pw.probs:[{top:true}]).map(tbRow).join('')}</div><button type="button" data-act="addtb">Dodaj boulder</button></div>
- <div class="card" data-t="Skały"><h2>Drogi i bouldery w skałach</h2><p class="mut">Skala francuska albo Kurtyki, osobno dla każdej drogi.</p><div id="rkrows">${(v.rock&&v.rock.routes&&v.rock.routes.length?v.rock.routes:[{}]).map(rkRow).join('')}</div><button type="button" data-act="addrk">Dodaj drogę</button></div>
+ <div class="card" data-t="Skały"><h2>Drogi i bouldery w skałach</h2><label>Długość dnia <span class="mut">do liczenia obciążenia</span></label><div class="pills">${pills('rlen',[['Krótki',1,'2–3 h'],['Normalny',2,'pół dnia'],['Długi',3,'cały dzień']])}</div><p class="mut">Skala francuska albo Kurtyki, osobno dla każdej drogi.</p><div id="rkrows">${(v.rock&&v.rock.routes&&v.rock.routes.length?v.rock.routes:[{}]).map(rkRow).join('')}</div><button type="button" data-act="addrk">Dodaj drogę</button></div>
  <div class="card"><div data-t="${DRF.join('|')}"><label>Drille techniczne <span class="mut">wybierz z listy</span></label><div class="chips" id="drillpills"></div>
  <label for="drill">Inny drill <span class="mut">nowa nazwa trafi na listę drilli</span></label><input id="drill" placeholder="np. Silent feet" value="${esc(otherDr)}"></div>
  <div id="accw"><label>Akcesoria</label>${v.acc&&!(v.accs&&v.accs.length)?`<p class="mut">Stary zapis: ${esc(v.acc)}</p>`:''}<div id="acrows">${(v.accs||[]).map(acRow).join('')}</div><div class="acpick" id="acpick" hidden></div><button type="button" class="addbtn" data-act="acopen">+ Dodaj ćwiczenie</button></div>
@@ -501,7 +503,7 @@ function build(act){const g=i=>(($(i)||{}).value||'').trim(),num=i=>{const t=g(i
  if(type=='Limit')s.lim=[...document.querySelectorAll('#limrows .lr')].map(r=>{const i=r.querySelectorAll('input');return{lv:i[0].value===''?null:+i[0].value,tries:i[1].value===''?null:+i[1].value,top:i[2].checked}}).filter(r=>r.lv!=null||r.tries!=null);
  let newMax=null;if(type=='Tindeq'){s.tind={sets:num('#tsets'),reps:num('#treps'),grip:g('#grip'),l:num('#tl'),r:num('#tr'),sec:num('#sec'),pct:num('#pct'),test:$('#istest').checked};
   if(act=='done'&&s.tind.test&&(s.tind.l!=null||s.tind.r!=null)){s.tind.pct=100;newMax={id:'m'+s.id,grip:s.tind.grip,date:s.date,l:s.tind.l,r:s.tind.r}}}
- if(type=='Skały')s.rock={routes:[...document.querySelectorAll('#rkrows .rkr')].filter(r=>r.querySelector('.rk-name').value.trim()||r.querySelector('.rk-tries').value||r.dataset.t).map(r=>({name:r.querySelector('.rk-name').value.trim(),sc:r.querySelector('.rk-sc').value,g:+r.querySelector('.rk-g').value,st:r.querySelector('.rk-st').value,tries:r.querySelector('.rk-tries').value===''?null:+r.querySelector('.rk-tries').value}))};
+ if(type=='Skały')s.rlen=F.rlen||2;if(type=='Skały')s.rock={routes:[...document.querySelectorAll('#rkrows .rkr')].filter(r=>r.querySelector('.rk-name').value.trim()||r.querySelector('.rk-tries').value||r.dataset.t).map(r=>({name:r.querySelector('.rk-name').value.trim(),sc:r.querySelector('.rk-sc').value,g:+r.querySelector('.rk-g').value,st:r.querySelector('.rk-st').value,tries:r.querySelector('.rk-tries').value===''?null:+r.querySelector('.rk-tries').value}))};
  if(BOARDS.includes(type)){s.pw={ang:num('#ang'),probs:[...document.querySelectorAll('#tbrows .tbr')].map(r=>{const i=r.querySelectorAll('input'),sel=r.querySelector('select');return{name:i[0].value.trim(),g:+sel.value,tries:i[1].value===''?null:+i[1].value,top:i[2].checked}}).filter(r=>r.name||r.tries!=null||r.top)};const o=S.find(x=>x.id==s.id);if(o&&o.pw&&o.pw.hard&&!s.pw.probs.length){s.pw.pass=o.pw.pass;s.pw.hard=o.pw.hard}}
  const old=S.find(x=>x.id==s.id);if(old&&old.acc&&!s.accs.length)s.acc=old.acc;const newAcc=s.accs.map(a=>a.name).filter(n=>!C.accLib.some(x=>x.toLowerCase()==n.toLowerCase()));if(old&&old.limOld&&type=='Limit'&&!s.lim.length)s.limOld=old.limOld;
  return{s,newDr,newMax,newAcc}}
@@ -637,6 +639,20 @@ function lines(sr,l){const W=320,H=130,v=sr.flat().filter(x=>x!=null);if(!v.leng
  l.forEach((t,i)=>s+=`<text x="${X(i)}" y="${H-8}" text-anchor="middle">${t}</text>`);
  return s+`</svg><p class="mut">Najlepszy wynik w tygodniu: lewa (ciemna linia), prawa (fioletowa). Zakres ${lo} do ${hi} kg.</p>`}
 
+/* ACWR: ostre = średnia z 7 dni, przewlekłe = EWMA 28 dni, przewlekłe liczone do dnia sprzed ostatniego tygodnia, więc tydzień ostry nie wchodzi do średniej */
+function acwrCalc(){const dn=done(),L={};dn.forEach(x=>L[x.date]=(L[x.date]||0)+ld(x));const st=dn.reduce((m,x)=>!m||x.date<m?x.date:m,'');
+ const out={today:null,pts:[],lab:[],days:st?diff(st,T)+1:0,gaps:0,cov:0};if(!st)return out;const cv=d=>[1,2,3,4].filter(k=>{for(let j=0;j<7;j++)if(L[add(d,-7*k-j)]!=null)return true;return false}).length;
+ const lc=2/29;let seed=0;for(let i=0;i<28;i++)seed+=L[add(st,i)]||0;seed/=28;
+ let c=seed;const Cs={},R={};for(let d=st,i=0;d<=T;d=add(d,1),i++){const l=L[d]||0;let a=0;for(let j=0;j<7;j++)a+=L[add(d,-j)]||0;a/=7;c+=lc*(l-c);Cs[d]=c;const c7=Cs[add(d,-7)];if(i>=34&&c7>0&&cv(d)>=3)R[d]=a/c7}
+ out.today=R[T]??null;out.cov=cv(T);for(let i=55;i>=0;i--){const d=add(T,-i);out.pts.push(R[d]??null);out.lab.push(i==0?'dziś':i%7==0?fd(d):'')}
+ out.gaps=[0,1,2,3].filter(k=>!dn.some(x=>{const g=diff(x.date,T);return g>=k*7&&g<k*7+7})).length;return out}
+function acwrChart(v,l){const W=320,H=140,n=v.length,vv=v.filter(x=>x!=null),hi=Math.min(2.5,Math.max(1.7,Math.max(...vv)+.15)),lo=Math.max(0,Math.min(.6,Math.min(...vv)-.1)),X=i=>26+i*(W-36)/(n-1),Y=x=>H-22-(H-34)*(Math.min(Math.max(x,lo),hi)-lo)/(hi-lo);
+ let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="ACWR z ostatnich 8 tygodni"><rect x="22" y="${Y(1.3)}" width="${W-28}" height="${Math.max(0,Y(.8)-Y(1.3))}" style="fill:rgba(255,255,255,.08)"/>`;
+ [[.8,'0,8'],[1.3,'1,3']].forEach(([g,t])=>s+=`<text x="2" y="${Y(g)+3}">${t}</text>`);
+ s+=`<line x1="22" x2="${W-6}" y1="${Y(1.5)}" y2="${Y(1.5)}" style="stroke:var(--accent);stroke-width:1" stroke-dasharray="3 4"/><text x="${W-4}" y="${Y(1.5)-4}" text-anchor="end" style="fill:var(--accent)">1,5</text>`;
+ let d='';v.forEach((x,i)=>{if(x==null){d+='';return}d+=(d&&v[i-1]!=null?'L':'M')+X(i).toFixed(1)+' '+Y(x).toFixed(1)});s+=`<path d="${d}" style="stroke:var(--ink);fill:none;stroke-width:2;stroke-linejoin:round"/>`;
+ const li=v.length-1;if(v[li]!=null)s+=`<circle cx="${X(li)}" cy="${Y(v[li])}" r="4.5" style="fill:var(--accent);stroke:var(--ink);stroke-width:1.5"/>`;
+ l.forEach((t,i)=>{if(t)s+=`<text x="${X(i)}" y="${H-5}" text-anchor="${i==n-1?'end':'middle'}">${t}</text>`});return s+'</svg>'}
 function rpeChart(v,l,cnt){const W=320,H=140,lo=4,hi=10,X=i=>24+i*(W-44)/7,Y=x=>H-26-(H-40)*(x-lo)/(hi-lo);
  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Trend RPE">`;
  [5,7,9].forEach(g=>s+=`<line x1="20" x2="${W-6}" y1="${Y(g)}" y2="${Y(g)}" style="stroke:var(--ln);stroke-width:1" stroke-dasharray="3 4"/><text x="4" y="${Y(g)+3}">${g}</text>`);
@@ -661,9 +677,10 @@ function prog(){const dn=done();let h='';
  let w1=wk(r1),w0=wk(r0);let nW=Math.min(12,Math.max(6,diff(w0,w1)/7+1));const ws=[...Array(nW)].map((_,i)=>add(w1,-7*(nW-1-i))),by=ws.map(w=>dn.filter(x=>wk(x.date)==w)),lab=ws.map(fd);
  const col=ws.map(w=>{const p=phAny(add(w,3)),cur=phOf(T);return p&&cur&&p.id==cur.id?'var(--accent)':p?'rgba(255,255,255,.55)':'rgba(255,255,255,.25)'});
  const av=avgWeek(wk(T));
- let acwr='';if(r1==T){const ac=sum(dn.filter(x=>{const d=diff(x.date,T);return d>=0&&d<7}).map(ld)),ch=sum(dn.filter(x=>{const d=diff(x.date,T);return d>=0&&d<28}).map(ld))/4,cov=[0,1,2,3].filter(k=>dn.some(x=>{const d=diff(x.date,T);return x.min&&d>=k*7&&d<k*7+7})).length,r=cov>=3&&ch?ac/ch:null;
-  const zone=r==null?`Za mało danych: sesje z czasem są tylko w ${cov} z 4 ostatnich tygodni, a potrzeba co najmniej 3. Inaczej wynik byłby zawyżony.`:r<.8?'Poniżej 0,8: niedociążenie. Normalne przy deloadzie.':r<=1.3?'0,8–1,3: strefa optymalna.':r<=1.5?'1,3–1,5: obciążenie rośnie szybko, uważaj.':'Powyżej 1,5: wysokie ryzyko przeciążenia.';
-  acwr=`<div class="big">${r==null?'ACWR –':'ACWR '+r.toFixed(2)}</div><p class="mut">${zone}</p>`}
+ let acwr='';if(r1==T){const A=acwrCalc(),r=A.today==null?null:Math.round(A.today*100)/100;
+  const cur=phOf(T),dl=cur&&/deload|roztren|odpocz|przerw/i.test(cur.n);
+  const zone=r==null?(A.days<35?`Za mało danych: potrzeba co najmniej 5 tygodni zapisanych treningów (masz ${A.days} ${A.days==1?'dzień':'dni'}).`:`Za mało regularnych wpisów: w 4 tygodniach przed ostatnim tygodniem treningi są zapisane tylko w ${A.cov}, a potrzeba co najmniej 3. Inaczej wynik byłby sztucznie zawyżony. Wróci, gdy zapiszesz treningi z kolejnych tygodni.`):r<.8?(dl?'Poniżej 0,8: lżej niż zwykle, zgodnie z deloadem.':'Poniżej 0,8: lżej niż zwykle. Normalne przy deloadzie, po przerwie albo przy chorobie.'):r<=1.3?'0,8–1,3: strefa optymalna.':r<=1.5?'1,3–1,5: obciążenie rośnie szybko, uważaj.':'Powyżej 1,5: duży skok obciążenia, ryzyko przeciążenia.';
+  acwr=`<div class="big">${r==null?'ACWR –':'ACWR '+r.toFixed(2).replace('.',',')}</div><p class="mut">${zone}</p>${r!=null&&A.pts.filter(x=>x!=null).length>1?acwrChart(A.pts,A.lab):''}${r!=null?`<p class="mut">Ostatnie 7 dni w porównaniu z 4 tygodniami wcześniej. Nowsze dni ważą więcej. Sesje bez czasu liczę szacunkowo (skały wg długości dnia, Tindeq 20 min).${A.gaps?` Brak wpisów w ${A.gaps} z 4 ostatnich tygodni: jeśli wtedy trenowałeś, wynik może być zawyżony.`:''}</p>`:''}`}
  h+=`<div class="card"><h2>Obciążenie tygodniowe</h2>${bars(by.map(a=>sum(a.map(ld))),lab,col,'Obciążenie tygodniowe',av)}<p class="mut">${av?'Procent Twojego średniego tygodnia (przerywana linia). Obciążenie to czas sesji razy RPE.':'Czas × RPE. Gdy zbierze się więcej tygodni, słupki pokażą procent Twojej średniej.'} Czerwone słupki to obecna faza.</p>${acwr}</div>`;
  const rv=by.map(a=>{const r=a.filter(x=>x.rpe);return r.length?sum(r.map(x=>x.rpe))/r.length:null}),rs=ss.filter(x=>x.rpe);
  if(rv.some(x=>x!=null))h+=`<div class="card"><h2>Trend RPE</h2>${rpeChart(rv,lab)}<p class="mut">Średnie RPE w tygodniu z ocenionych sesji.${rs.length?` W tym okresie średnio ${(sum(rs.map(x=>x.rpe))/rs.length).toFixed(1)}.`:''}</p></div>`;
