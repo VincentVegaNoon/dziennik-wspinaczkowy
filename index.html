@@ -361,6 +361,15 @@ body.loggedout #auth{min-height:100vh;display:flex;align-items:center;justify-co
 .phnote.empty{border-left-style:dashed}
 .tgap span{font-size:12px;padding:2px 9px;border-radius:99px;background:rgba(255,255,255,.07);color:var(--mut)}
 .phadd{border-width:1.5px!important;min-height:50px!important}
+
+.dlcard{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;width:100%;text-align:left;margin:0;padding:10px 16px;border:1.5px dashed rgba(255,255,255,.22)!important;border-radius:14px;background:rgba(20,20,22,.55)!important;backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);min-height:0}
+.dlcard.now{border-color:color-mix(in srgb,var(--accent) 60%,transparent)!important}.dlcard.fut{opacity:.6}
+.dlname{font:700 15px var(--disp);letter-spacing:.12em;text-transform:uppercase}
+.dldates,.dlstats{font-size:13px;color:var(--mut)}.dlstats b{color:var(--ink)}.dlstats{margin-left:auto}
+.dladd{align-self:flex-start;margin:6px 0 0;padding:4px 12px;min-height:32px;font-size:13px;font-weight:600;color:var(--mut);background:transparent;border:1px dashed rgba(255,255,255,.2)!important;border-radius:99px}
+.dladd:hover{color:var(--ink);border-color:var(--accent)!important}
+.seg.dl{background:repeating-linear-gradient(135deg,rgba(255,255,255,.18) 0 3px,transparent 3px 6px)!important}.seg.dl i{background:rgba(255,255,255,.35)!important}
+.dlinfo{margin:6px 0 0;font-size:13px;color:var(--mut)}.dlinfo:empty{display:none}.dlinfo span{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:2px 8px;border-radius:99px;background:rgba(255,255,255,.1);color:var(--ink);margin-right:4px}
 </style>
 </head>
 <body class="loggedout">
@@ -426,6 +435,7 @@ function norm(s){s={...s};s.status=s.status||'done';
 const done=()=>S.filter(s=>s.status!='plan'),plans=()=>S.filter(s=>s.status=='plan');
 const cyc=()=>C.cycles.find(x=>x.id==C.active)||C.cycles[0];
 const phOf=(d,cy=cyc())=>cy?cy.phases.find(p=>d>=p.s&&d<=p.e):null;
+const phLbl=p=>{if(!p)return '';if(!p.dl)return p.n;const c=C.cycles.find(c=>c.phases.includes(p)),pr=c&&c.phases.filter(q=>!q.dl&&q.e<p.s).sort((a,b)=>b.e.localeCompare(a.e))[0];return 'Deload'+(pr?' po '+pr.n:'')};
 const phAny=d=>phOf(d)||C.cycles.map(c=>phOf(d,c)).find(Boolean);
 const cEnd=c=>c.phases.reduce((m,p)=>p.e>m?p.e:m,''),cStart=c=>c.phases.reduce((m,p)=>!m||p.s<m?p.s:m,'');
 const eff=s=>{if(s.rpe)return s.rpe;const a=done().filter(x=>x.type==s.type&&x.rpe&&x.date<=s.date).sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5).map(x=>x.rpe).sort((a,b)=>a-b);return a.length?a[a.length>>1]:7};
@@ -454,8 +464,10 @@ async function loadUserData(){const [a,b]=await Promise.all([sb.from('sessions')
 
 /* ---------- header ---------- */
 function head(){const cy=cyc(),ps=[...cy.phases].sort(bySD),p=phOf(T,cy);let h='',rb='';
- const pc=p||(ps.length&&T<ps[0].s?ps[0]:null);document.documentElement.style.setProperty('--phase',pc?`var(${pc.c})`:'var(--accent)');
- if(p){const w=Math.floor(diff(p.s,T)/7)+1,tw=Math.ceil((diff(p.s,p.e)+1)/7),left=diff(T,p.e);
+ const pc=p||(ps.length&&T<ps[0].s?ps[0]:null);document.documentElement.style.setProperty('--phase',pc&&!pc.dl?`var(${pc.c})`:pc?'var(--mut)':'var(--accent)');
+ if(p&&p.dl){const left=diff(T,p.e),nx=ps.find(q=>q.s>p.e);
+  h=`<p class="wk">${esc(phLbl(p))}</p><h1>Deload</h1><p class="mut">${left?'Koniec deloadu za '+left+' '+(left==1?'dzień':'dni')+'.':'Ostatni dzień deloadu.'}${nx?' Potem '+esc(nx.n)+'.':''}`}
+ else if(p){const w=Math.floor(diff(p.s,T)/7)+1,tw=Math.ceil((diff(p.s,p.e)+1)/7),left=diff(T,p.e);
   h=`<p class="wk">Tydzień ${w} z ${tw}</p><h1>${esc(p.n)}</h1><p class="mut">${left?'Koniec fazy za '+left+' dni.':'Ostatni dzień fazy.'}`}
  else if(ps.length&&T<ps[0].s)h=`<p class="wk">Wkrótce</p><h1>${esc(ps[0].n)}</h1><p class="mut">Faza zaczyna się za ${diff(T,ps[0].s)} dni.`;
  else if(ps.length&&T>cEnd(cy))h=`<h1>Cykl zakończony</h1><p class="mut">W zakładce Cykl możesz go wznowić albo zacząć nowy.`;
@@ -463,7 +475,7 @@ function head(){const cy=cyc(),ps=[...cy.phases].sort(bySD),p=phOf(T,cy);let h='
  else h=`<h1>Przerwa między fazami</h1><p class="mut">`;
  if(cy.goalDate&&cy.goalDate>=T)h+=` ${esc(cy.goal||'Cel')}: za ${diff(T,cy.goalDate)} dni.`;h+='</p>';
  if(ps.length){const a=ps[0].s,z=cEnd(cy);
-  rb=`<div class="segbar" role="img" aria-label="Fazy cyklu">${ps.map(q=>{const len=diff(q.s,q.e)+1,now=T>=q.s&&T<=q.e,past=T>q.e,f=now?Math.round((diff(q.s,T)+1)/len*100):past?100:0;return `<span class="seg${now?' now':past?' past':''}" style="flex:${len}" title="${esc(q.n)} ${fd(q.s)}–${fd(q.e)}"><i style="width:${f}%"></i></span>`}).join('')}</div><div class="legend">${ps.map(q=>{const now=T>=q.s&&T<=q.e;return `<span class="${now?'lnow':''}">${esc(q.n)} ${fd(q.s)}–${fd(q.e)}</span>`}).join('')}</div>`}
+  rb=`<div class="segbar" role="img" aria-label="Fazy cyklu">${ps.map(q=>{const len=diff(q.s,q.e)+1,now=T>=q.s&&T<=q.e,past=T>q.e,f=now?Math.round((diff(q.s,T)+1)/len*100):past?100:0;return `<span class="seg${q.dl?' dl':''}${now?' now':past?' past':''}" style="flex:${len}" title="${esc(phLbl(q))} ${fd(q.s)}–${fd(q.e)}"><i style="width:${f}%"></i></span>`}).join('')}</div><div class="legend">${ps.filter(q=>!q.dl||(T>=q.s&&T<=q.e)).map(q=>{const now=T>=q.s&&T<=q.e;return `<span class="${now?'lnow':''}">${esc(q.dl?'Deload':q.n)} ${fd(q.s)}–${fd(q.e)}</span>`}).join('')}</div>`}
  h=`<div class="hero"><div class="stxt"><div class="brand"><i></i>${esc(cy.name)}<button class="sm logout" data-act="logout" title="${esc(USER?USER.email:'')}">Wyloguj</button></div>${h}</div><div class="hbody">${rb}</div></div>`;
  $('#head').innerHTML=h}
 
@@ -492,7 +504,7 @@ function form(src,mode,pdate){const v=src||{},isPlan=mode.startsWith('plan');
   'plan-edit':`<button class="go" data-act="save-plan">Zapisz plan</button><button data-act="cancel">Anuluj</button>`}[mode];
  const lim=v.lim&&v.lim.length?v.lim:[{}];
  $('#v-add').innerHTML=`<div class="card"><h2>${title}</h2>${v.limOld&&!(v.lim&&v.lim.length)?`<p class="mut">Stary zapis: max poz.${v.limOld.top??'?'}, topy ${v.limOld.sends??'?'} z ${v.limOld.tries??'?'} prób.</p>`:''}
- <label for="date">Data</label>${mode=='archive'?'<p class="mut" style="margin:-2px 0 8px">Dowolna data z przeszłości, także sprzed pierwszego treningu w aplikacji.</p>':''}<div class="datequick">${mode=='archive'?'':[[0,'Dziś'],[1,'Wczoraj'],[2,'Przedwczoraj']].filter(q=>!minD||add(T,-q[0])>=minD).map(q=>`<button type="button" class="pchip" data-setdate="${add(T,-q[0])}" aria-pressed="${date==add(T,-q[0])}">${q[1]}<small>${fdw(add(T,-q[0]))}</small></button>`).join('')}<input id="date" type="date" value="${date}" max="${T}" ${minD?`min="${minD}"`:''}></div>
+ <label for="date">Data</label>${mode=='archive'?'<p class="mut" style="margin:-2px 0 8px">Dowolna data z przeszłości, także sprzed pierwszego treningu w aplikacji.</p>':''}<div class="datequick">${mode=='archive'?'':[[0,'Dziś'],[1,'Wczoraj'],[2,'Przedwczoraj']].filter(q=>!minD||add(T,-q[0])>=minD).map(q=>`<button type="button" class="pchip" data-setdate="${add(T,-q[0])}" aria-pressed="${date==add(T,-q[0])}">${q[1]}<small>${fdw(add(T,-q[0]))}</small></button>`).join('')}<input id="date" type="date" value="${date}" max="${T}" ${minD?`min="${minD}"`:''}></div><p class="dlinfo" id="dlinfo">${dlBadge(date)}</p>
  <label for="type">Typ sesji</label><select id="type">${TY.map(t=>`<option${t==v.type?' selected':''}>${t}</option>`).join('')}</select>
  <div class="row" id="pmrow"><div><label for="place">Miejsce</label><div class="dd"><input id="place" placeholder="Wpisz albo wybierz z listy" autocomplete="off" spellcheck="false" value="${esc(v.place)}"><button type="button" class="ddchev" data-act="placeopen" aria-label="Pokaż miejsca" tabindex="-1"></button><div class="ddlist" id="placelist" hidden role="listbox"></div></div></div>${n('min',isPlan?'Planowany czas (min)':'Czas (min)',v.min,'int',3,999).replace('step="any"','step="any" placeholder="np. 90"')}</div></div>
  <div class="card" id="gd"${isPlan?' hidden':''}><h2>Green Day check</h2><p class="mut">Odpowiedz przed treningiem, a podpowiem, jak go dziś zrobić.</p>
@@ -677,7 +689,7 @@ function lvlOf(s){const r=s.rpe;if(!r)return null;return r<=5?['Lekka sesja','--
 function relType(s){const o=done().filter(x=>x.type==s.type&&x.id!=s.id&&ld(x)>0);if(o.length<3||!ld(s))return null;return Math.round(ld(s)/(sum(o.map(ld))/o.length)*100)}
 function avgWeek(before){const ws=[...Array(8)].map((_,i)=>add(before,-7*(i+1))).map(w=>sum(done().filter(x=>wk(x.date)==w).map(ld))).filter(x=>x>0);return ws.length>=2?sum(ws)/ws.length:null}
 function bars(v,l,col,unit,avg){const W=320,H=130,bw=W/v.length,mx=Math.max(...v,avg||0,1);let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${unit}">`;
- v.forEach((x,i)=>{const h=(H-44)*x/mx,cx=i*bw+bw/2;s+=`<rect x="${i*bw+5}" y="${H-20-h}" width="${bw-10}" height="${Math.max(h,0)}" rx="4" style="fill:${col[i]}"/><text x="${cx}" y="${H-6}" text-anchor="middle">${l[i]}</text>`+(x?`<text class="v" x="${cx}" y="${H-24-h}" text-anchor="middle">${avg?Math.round(x/avg*100)+'%':Math.round(x)}</text>`:'')});
+ v.forEach((x,i)=>{const h=(H-44)*x/mx,cx=i*bw+bw/2;s+=`<rect x="${i*bw+5}" y="${H-20-h}" width="${bw-10}" height="${Math.max(h,0)}" rx="4" style="fill:${col[i]}"/>${v.length<=8||(v.length-1-i)%2==0?`<text x="${cx}" y="${H-6}" text-anchor="middle">${l[i]}</text>`:''}`+(x?`<text class="v" x="${cx}" y="${H-24-h}" text-anchor="middle">${avg?Math.round(x/avg*100)+'%':Math.round(x)}</text>`:'')});
  if(avg){const y=H-20-(H-44)*avg/mx;s+=`<line x1="2" x2="${W-2}" y1="${y}" y2="${y}" style="stroke:var(--ink);stroke-width:1.2;opacity:.55" stroke-dasharray="4 4"/>`}return s+'</svg>'}
 function lines(sr,l){const W=320,H=130,v=sr.flat().filter(x=>x!=null);if(!v.length)return '<p class="mut">Brak pomiarów dla tego chwytu w ostatnich 8 tygodniach.</p>';
  let lo=Math.min(...v),hi=Math.max(...v);if(hi==lo){hi++;lo--}const X=i=>20+i*(W-40)/7,Y=x=>H-26-(H-46)*(x-lo)/(hi-lo);let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Siła palców">`;
@@ -715,19 +727,19 @@ function prog(){const dn=done();let h='';
  if(!dn.length){$('#v-prog').innerHTML=h+'<div class="card"><p>Tu pojawią się wykresy po pierwszej zapisanej sesji.</p><p class="mut">Obciążenie, RPE i postęp w typach sesji, które robisz w danej fazie.</p></div>';return}
  const cy=cyc(),ps=[...cy.phases].sort(bySD),cp=phOf(T,cy);
  let P=PRG=='cycle'?null:PRG=='cur'?cp:ps.find(q=>q.id==PRG);if(PRG!='cycle'&&!P){PRG=cp?'cur':'cycle';P=cp}
- const r0=P?P.s:(cStart(cy)||done().reduce((m,x)=>x.date<m?x.date:m,T)),r1=[P?P.e:(cEnd(cy)||T),T].sort()[0],ss=dn.filter(x=>x.date>=r0&&x.date<=r1),title=P?P.n:cy.name;
- h+=`<div class="prgchips chips">${cp?`<button class="pill" data-act="prg" data-v="cur" aria-pressed="${PRG=='cur'}">Obecna faza</button>`:''}${ps.filter(q=>!cp||q.id!=cp.id).filter(q=>q.s<=T).map(q=>`<button class="pill" data-act="prg" data-v="${q.id}" aria-pressed="${PRG==q.id}">${esc(q.n)}</button>`).join('')}<button class="pill" data-act="prg" data-v="cycle" aria-pressed="${PRG=='cycle'}">Cały cykl</button></div>`;
+ const r0=P?P.s:(cStart(cy)||done().reduce((m,x)=>x.date<m?x.date:m,T)),r1=[P?P.e:(cEnd(cy)||T),T].sort()[0],ss=dn.filter(x=>x.date>=r0&&x.date<=r1),title=P?phLbl(P):cy.name;
+ h+=`<div class="prgchips chips">${cp?`<button class="pill" data-act="prg" data-v="cur" aria-pressed="${PRG=='cur'}">Obecna faza</button>`:''}${ps.filter(q=>!cp||q.id!=cp.id).filter(q=>q.s<=T).map(q=>`<button class="pill" data-act="prg" data-v="${q.id}" aria-pressed="${PRG==q.id}">${esc(q.dl?phLbl(q):q.n)}</button>`).join('')}<button class="pill" data-act="prg" data-v="cycle" aria-pressed="${PRG=='cycle'}">Cały cykl</button></div>`;
  const bf=ss.filter(x=>x.before!=null),cl=ss.filter(x=>DRQ.includes(x.type)),sk=ss.filter(x=>x.skin==3).length;
  h+=`<div class="card"><h2>${esc(title)}<span class="mut" style="font:400 15px var(--body)"> ${fd(r0)}–${fd(r1)}</span></h2><div class="tiles"><div><b>${ss.length}</b><span>${plS(ss.length)}</span></div><div><b>${(sum(ss.map(x=>x.min))/60).toFixed(1)}</b><span>godzin</span></div><div><b>${bf.length?(sum(bf.map(x=>x.before))/bf.length).toFixed(1):'–'}</b><span>średnie Before</span></div><div><b>${cl.length?Math.round(cl.filter(x=>x.drill).length/cl.length*100)+'%':'–'}</b><span>sesji z drillem</span></div></div>${sk?`<p class="mut">Zdarta skóra: ${sk} ${sk==1?'raz':'razy'} w tym okresie.</p>`:''}</div>`;
  /* weeks of the period, at least 6, at most 12 */
  let w1=wk(r1),w0=wk(r0);let nW=Math.min(12,Math.max(6,diff(w0,w1)/7+1));const ws=[...Array(nW)].map((_,i)=>add(w1,-7*(nW-1-i))),by=ws.map(w=>dn.filter(x=>wk(x.date)==w)),lab=ws.map(fd);
- const col=ws.map(w=>{const p=phAny(add(w,3)),cur=phOf(T);return p&&cur&&p.id==cur.id?'var(--accent)':p?'rgba(255,255,255,.55)':'rgba(255,255,255,.25)'});
+ const col=ws.map(w=>{const p=phAny(add(w,3)),cur=phOf(T);return p&&p.dl?'rgba(255,255,255,.16)':p&&cur&&p.id==cur.id?'var(--accent)':p?'rgba(255,255,255,.55)':'rgba(255,255,255,.25)'});
  const av=avgWeek(wk(T));
  let acwr='';if(r1==T){const A=acwrCalc(),r=A.today==null?null:Math.round(A.today*100)/100;
-  const cur=phOf(T),dl=cur&&/deload|roztren|odpocz|przerw/i.test(cur.n);
+  const cur=phOf(T),dl=cur&&(cur.dl||/deload|roztren|odpocz|przerw/i.test(cur.n));
   const zone=r==null?(A.days<35?`Za mało danych: potrzeba co najmniej 5 tygodni zapisanych treningów (masz ${A.days} ${A.days==1?'dzień':'dni'}).`:`Za mało regularnych wpisów: w 4 tygodniach przed ostatnim tygodniem treningi są zapisane tylko w ${A.cov}, a potrzeba co najmniej 3. Inaczej wynik byłby sztucznie zawyżony. Wróci, gdy zapiszesz treningi z kolejnych tygodni.`):r<.8?(dl?'Poniżej 0,8: lżej niż zwykle, zgodnie z deloadem.':'Poniżej 0,8: lżej niż zwykle. Normalne przy deloadzie, po przerwie albo przy chorobie.'):r<=1.3?'0,8–1,3: strefa optymalna.':r<=1.5?'1,3–1,5: obciążenie rośnie szybko, uważaj.':'Powyżej 1,5: duży skok obciążenia, ryzyko przeciążenia.';
   acwr=`<div class="big">${r==null?'ACWR –':'ACWR '+r.toFixed(2).replace('.',',')}</div><p class="mut">${zone}</p>${r!=null&&A.pts.filter(x=>x!=null).length>1?acwrChart(A.pts,A.lab):''}${r!=null?`<p class="mut">Ostatnie 7 dni w porównaniu z 4 tygodniami wcześniej. Nowsze dni ważą więcej. Sesje bez czasu liczę szacunkowo (skały wg długości dnia, Tindeq 20 min).${A.gaps?` Brak wpisów w ${A.gaps} z 4 ostatnich tygodni: jeśli wtedy trenowałeś, wynik może być zawyżony.`:''}</p>`:''}`}
- h+=`<div class="card"><h2>Obciążenie tygodniowe</h2>${bars(by.map(a=>sum(a.map(ld))),lab,col,'Obciążenie tygodniowe',av)}<p class="mut">${av?'Procent Twojego średniego tygodnia (przerywana linia). Obciążenie to czas sesji razy RPE.':'Czas × RPE. Gdy zbierze się więcej tygodni, słupki pokażą procent Twojej średniej.'} Czerwone słupki to obecna faza.</p>${acwr}</div>`;
+ h+=`<div class="card"><h2>Obciążenie tygodniowe</h2>${bars(by.map(a=>sum(a.map(ld))),lab,col,'Obciążenie tygodniowe',av)}<p class="mut">${av?'Procent Twojego średniego tygodnia (przerywana linia). Obciążenie to czas sesji razy RPE.':'Czas × RPE. Gdy zbierze się więcej tygodni, słupki pokażą procent Twojej średniej.'} Czerwone słupki to obecna faza${ws.some(w=>{const p=phAny(add(w,3));return p&&p.dl})?', ciemne to deload':''}.</p>${acwr}</div>`;
  const rv=by.map(a=>{const r=a.filter(x=>x.rpe);return r.length?sum(r.map(x=>x.rpe))/r.length:null}),rs=ss.filter(x=>x.rpe);
  if(rv.some(x=>x!=null))h+=`<div class="card"><h2>Trend RPE</h2>${rpeChart(rv,lab)}<p class="mut">Średnie RPE w tygodniu z ocenionych sesji.${rs.length?` W tym okresie średnio ${(sum(rs.map(x=>x.rpe))/rs.length).toFixed(1)}.`:''}</p></div>`;
  /* ---- per type, only what was done in the period ---- */
@@ -768,7 +780,7 @@ function hFiltered(){const q=HF.q.trim().toLowerCase();return done().filter(s=>{
  if(HF.day&&(s.day||'')!=HF.day)return false;
  if(q&&![s.type,s.place,s.note,s.drill,s.acc,s.pain].join(' ').toLowerCase().includes(q))return false;return true})}
 function hFilters(){const cycs=[...C.cycles].sort((a,b)=>cStart(b).localeCompare(cStart(a)));if(HF.cyc!='all'&&!cycs.some(c=>c.id==HF.cyc))HF.cyc='all';
- const phOpts=(HF.cyc=='all'?cycs:cycs.filter(c=>c.id==HF.cyc)).flatMap(c=>[...c.phases].sort(bySD).map(p=>[c.id+':'+p.id,p.n+(HF.cyc=='all'&&cycs.length>1?` (${c.name})`:'')+` ${fd(p.s)}–${fd(p.e)}`]));
+ const phOpts=(HF.cyc=='all'?cycs:cycs.filter(c=>c.id==HF.cyc)).flatMap(c=>[...c.phases].sort(bySD).map(p=>[c.id+':'+p.id,phLbl(p)+(HF.cyc=='all'&&cycs.length>1?` (${c.name})`:'')+` ${fd(p.s)}–${fd(p.e)}`]));
  if(HF.ph!='all'&&!phOpts.some(o=>o[0]==HF.ph))HF.ph='all';
  const places=[...new Set(done().map(s=>s.place).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pl')),types=TY.filter(t=>done().some(s=>s.type==t));
  const n=(HF.cyc!='all')+(HF.ph!='all')+(HF.types.length>0)+!!HF.place+!!HF.day+!!HF.q.trim();
@@ -815,16 +827,18 @@ function cycleView(){const cy=ecy(),isAct=cy.id==C.active,ps=[...cy.phases].sort
  if(last&&end<T)h+=`<div class="card warn"><b>${isAct?'Cykl':'Ten cykl'} zakończył się ${fdw(end)}.</b><p class="mut">Możesz go wznowić: przedłuż ostatnią fazę (${esc(last.n)}) albo dodaj nową fazę od dziś.</p><label for="ext">Przedłuż fazę ${esc(last.n)} do</label><input id="ext" type="date" value="${add(T,13)}"><div class="btns"><button data-act="extend">Przedłuż fazę</button><button data-act="phtoday">Dodaj fazę od dziś</button></div></div>`;
  h+='<div class="tline">';
  ps.forEach((p,i)=>{if(i){const g=diff(ps[i-1].e,p.s)-1;h+=`<div class="tgap">${g>0?`<span>przerwa ${g} ${g==1?'dzień':'dni'}</span>`:''}</div>`}
+  if(p.dl){const st=pstat(p),now=T>=p.s&&T<=p.e,len=diff(p.s,p.e)+1;h+=`<button class="dlcard${now?' now':''}${T<p.s?' fut':''}" data-act="dledit" data-id="${p.id}" aria-label="Edytuj deload"><span class="dlname">Deload</span><span class="dldates">${fd(p.s)}–${fd(p.e)} · ${len} ${len==1?'dzień':'dni'}${now?` · zostało ${diff(T,p.e)} dni`:''}</span>${T>=p.s?`<span class="dlstats"><b>${st.n}</b> ${plS(st.n)}${st.rpe?` · RPE <b>${st.rpe.toFixed(1)}</b>`:''}</span>`:''}</button>`;return}
+  const hasDl=ps.some(q=>q.dl&&q.s==add(p.e,1)),dlBtn=hasDl?'':`<button class="dladd" data-act="dlnew" data-id="${p.id}">+ Deload po ${esc(p.n)}</button>`;
   const st=pstat(p),tw=Math.ceil((diff(p.s,p.e)+1)/7),now=T>=p.s&&T<=p.e,past=T>p.e,fut=T<p.s,cw=now?Math.floor(diff(p.s,T)/7)+1:0;
   const note=`<span class="phnote${p.note?'':' empty'}">${p.note?`<em>Wnioski</em>${esc(p.note)}`:past?'+ Dodaj wnioski po tej fazie':'Wnioski dopiszesz po zakończeniu fazy'}</span>`;
   if(now)h+=`<button class="phcard now" style="--pc:var(${p.c})" data-act="phedit" data-id="${p.id}" aria-label="Edytuj fazę ${esc(p.n)}"><span class="phtop"><span><span class="phkick">Tydzień ${cw} z ${tw} · zostało ${diff(T,p.e)} dni</span><b class="phname">${esc(p.n)}</b><span class="phdates">${fd(p.s)}–${fd(p.e)}${st.top?` · Głównie ${esc(st.top)}`:''}</span></span></span>
    <span class="phseg">${[...Array(tw)].map((_,i)=>`<i class="${i<cw-1?'on':i==cw-1?'cur':''}"></i>`).join('')}</span>
    <span class="phtiles"><span><b>${st.n}</b>${cap1(plS(st.n))}</span><span><b>${st.rpe?st.rpe.toFixed(1):'–'}</b>Średnie RPE</span></span>${note}</button>`;
   else if(past)h+=`<button class="phcard past" style="--pc:var(${p.c})" data-act="phedit" data-id="${p.id}" aria-label="Edytuj fazę ${esc(p.n)}"><span class="phtop"><span><b class="phname">${esc(p.n)}</b><span class="phdates">${fd(p.s)}–${fd(p.e)} · ${tw} tyg.</span></span><span class="phmini"><b>${st.n}</b> ${plS(st.n)} · RPE <b>${st.rpe?st.rpe.toFixed(1):'–'}</b>${st.top?`<br>Głównie <b>${esc(st.top)}</b>`:''}</span></span>${note}</button>`;
-  else h+=`<button class="phcard fut" style="--pc:var(${p.c})" data-act="phedit" data-id="${p.id}" aria-label="Edytuj fazę ${esc(p.n)}"><span class="phtop"><span><b class="phname">${esc(p.n)}</b><span class="phdates">${fd(p.s)}–${fd(p.e)} · ${tw} tyg.</span></span><span class="phmini">za ${diff(T,p.s)} ${diff(T,p.s)==1?'dzień':'dni'}</span></span></button>`});
+  else h+=`<button class="phcard fut" style="--pc:var(${p.c})" data-act="phedit" data-id="${p.id}" aria-label="Edytuj fazę ${esc(p.n)}"><span class="phtop"><span><b class="phname">${esc(p.n)}</b><span class="phdates">${fd(p.s)}–${fd(p.e)} · ${tw} tyg.</span></span><span class="phmini">za ${diff(T,p.s)} ${diff(T,p.s)==1?'dzień':'dni'}</span></span></button>`;h+=dlBtn});
  h+=`<button class="phadd" data-act="phnew">+ Dodaj fazę</button></div>`;
  h+=`<details class="card arch"><summary><h2 style="margin:0;display:inline">Nowy cykl i archiwum</h2></summary><p class="mut" style="margin-top:10px">Nowy cykl przeniesie obecny do archiwum razem z wnioskami.</p><div class="btns"><button data-act="newcyc">Zacznij nowy cykl</button></div>
- ${others.length?`<h3 style="font:700 18px var(--disp);margin:18px 0 6px">Poprzednie cykle</h3>${others.map(o=>`<div class="h" style="margin:10px 0"><div><b>${esc(o.name)}</b><p class="mut">${o.phases.length?fd(cStart(o))+'–'+fd(cEnd(o))+', '+o.phases.length+' faz':'bez faz'}</p></div><div class="acts" style="flex-direction:row"><button data-act="editcyc" data-id="${o.id}">Pokaż</button><button data-act="setcyc" data-id="${o.id}">Wznów</button></div></div>`).join('')}`:''}</details>`;
+ ${others.length?`<h3 style="font:700 18px var(--disp);margin:18px 0 6px">Poprzednie cykle</h3>${others.map(o=>`<div class="h" style="margin:10px 0"><div><b>${esc(o.name)}</b><p class="mut">${o.phases.length?fd(cStart(o))+'–'+fd(cEnd(o))+', '+o.phases.filter(q=>!q.dl).length+' faz':'bez faz'}</p></div><div class="acts" style="flex-direction:row"><button data-act="editcyc" data-id="${o.id}">Pokaż</button><button data-act="setcyc" data-id="${o.id}">Wznów</button></div></div>`).join('')}`:''}</details>`;
  $('#v-cyc').innerHTML=h}
 /* ---------- eksport CSV (Excel: średnik, UTF-8 z BOM) ---------- */
 const txt=h=>{const d=document.createElement('div');d.innerHTML=h;return d.textContent.trim()};
@@ -832,10 +846,10 @@ const csvCell=v=>{if(v==null)return '';if(typeof v=='number')return String(v).re
 const fdy=s=>s?s.slice(8,10)+'.'+s.slice(5,7)+'.'+s.slice(0,4):'';
 function csvRows(cy,ps){const R=[['Data','Dzień','Faza','Typ','Miejsce','Czas (min)','RPE','Obciążenie (min×RPE)','Przejścia Capacity','Wynik','Drill','Akcesoria','Skóra','Ból','Notatka']];
  const ss=done().filter(x=>ps.some(p=>x.date>=p.s&&x.date<=p.e)).sort((a,b)=>a.date.localeCompare(b.date));
- ss.forEach(x=>{const p=ps.find(q=>x.date>=q.s&&x.date<=q.e);R.push([fdy(x.date),WD[D(x.date).getDay()],p?p.n:'',x.type,x.place||'',x.min||null,x.rpe||null,x.min?ld(x):null,x.type=='Capacity'&&x.cap?capN(x):null,txt(summ(x)).replace(/^Razem \d+: /,''),x.drill||'',x.accs&&x.accs.length?txt(x.accs.map(accTxt).join('; ')):(x.acc||''),x.skin&&x.skin>1?SK[x.skin-1][1]:'',x.pain||'',x.note||''])});
+ ss.forEach(x=>{const p=ps.find(q=>x.date>=q.s&&x.date<=q.e);R.push([fdy(x.date),WD[D(x.date).getDay()],p?phLbl(p):'',x.type,x.place||'',x.min||null,x.rpe||null,x.min?ld(x):null,x.type=='Capacity'&&x.cap?capN(x):null,txt(summ(x)).replace(/^Razem \d+: /,''),x.drill||'',x.accs&&x.accs.length?txt(x.accs.map(accTxt).join('; ')):(x.acc||''),x.skin&&x.skin>1?SK[x.skin-1][1]:'',x.pain||'',x.note||''])});
  R.push([]);R.push(['Podsumowanie faz']);R.push(['Faza','Od','Do','Tygodnie','Sesje','Godziny','Śr. RPE','Wnioski']);
- ps.forEach(p=>{const st=pstat(p);R.push([p.n,fdy(p.s),fdy(p.e),Math.ceil((diff(p.s,p.e)+1)/7),st.n,+st.h.toFixed(1),st.rpe?+st.rpe.toFixed(1):null,p.note||''])});
- if(ps.length>1){const all=ss.filter(x=>x.rpe);R.push(['Cały cykl',fdy(cStart(cy)),fdy(cEnd(cy)),Math.ceil((diff(cStart(cy),cEnd(cy))+1)/7),ss.length,+(sum(ss.map(x=>x.min))/60).toFixed(1),all.length?+(sum(all.map(x=>x.rpe))/all.length).toFixed(1):null,''])}
+ ps.forEach(p=>{const st=pstat(p);R.push([phLbl(p),fdy(p.s),fdy(p.e),Math.ceil((diff(p.s,p.e)+1)/7),st.n,+st.h.toFixed(1),st.rpe?+st.rpe.toFixed(1):null,p.note||''])});
+ if(ps.length>1&&ps.length==cy.phases.length){const all=ss.filter(x=>x.rpe);R.push(['Cały cykl',fdy(cStart(cy)),fdy(cEnd(cy)),Math.ceil((diff(cStart(cy),cEnd(cy))+1)/7),ss.length,+(sum(ss.map(x=>x.min))/60).toFixed(1),all.length?+(sum(all.map(x=>x.rpe))/all.length).toFixed(1):null,''])}
  return R}
 function csvDownload(name,R){const body='\uFEFF'+R.map(r=>r.map(csvCell).join(';')).join('\r\n');
  const fn=(name||'eksport').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ł/g,'l').replace(/Ł/g,'L').replace(/[^\w-]+/g,'-').replace(/^-+|-+$/g,'')+'.csv';
@@ -847,13 +861,24 @@ function phSheet(p,isNew){openSheet(`<div class="sh-top"><div><p class="mut">${e
  <div class="row"><div><label for="pe-s">Początek</label><input id="pe-s" type="date" value="${p.s}"></div><div><label for="pe-e">Koniec</label><input id="pe-e" type="date" value="${p.e}"></div></div>
  <label for="pe-note">Wnioski po fazie</label><textarea id="pe-note" rows="5" placeholder="Co działało, co zmienić w następnym cyklu">${esc(p.note)}</textarea>
  <div class="btns"><button class="go" data-act="phsave" data-id="${p.id}"${isNew?' data-new="1"':''}>Zapisz fazę</button>${isNew?'':`<button data-act="csvph" data-id="${p.id}" style="flex:0 0 auto">Eksport do Excela</button><button class="rmb" style="flex:0 0 auto" data-act="phdel" data-id="${p.id}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>Usuń fazę</button>`}</div>`);setTimeout(()=>$('#pe-n').focus(),30)}
+function dlSheet(d,isNew,info){const cy=ecy();openSheet(`<div class="sh-top"><div><p class="mut">${esc(cy.name)}</p><h2>${isNew?'Nowy deload':esc(phLbl(d))}</h2></div>${XBTN}</div>
+ <p class="mut">Sesje z tych dni liczą się do deloadu, a nie do fazy. Dzięki temu statystyki fazy pokazują tylko właściwy trening.</p>
+ <div class="row"><div><label for="dl-s">Początek</label><input id="dl-s" type="date" value="${d.s}"></div><div><label for="dl-e">Koniec</label><input id="dl-e" type="date" value="${d.e}"></div></div>
+ <p class="mut" id="dl-info">${info||''}</p>
+ <div class="btns"><button class="go" data-act="dlsave" data-id="${d.id}"${isNew?' data-new="1"':''}>Zapisz deload</button>${isNew?'':`<button class="rmb" style="flex:0 0 auto" data-act="dldel" data-id="${d.id}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>Usuń deload</button>`}</div>`)}
+/* deload: wolne dni po fazie -> wypełnia lukę; fazy się stykają -> zabiera ostatnie dni fazy (faza zostaje skrócona) */
+function dlPlan(cy,s0,e0,selfId){const ov=cy.phases.filter(q=>q.id!=selfId&&s0<=q.e&&e0>=q.s);if(!ov.length)return{ok:true};
+ if(ov.length==1&&!ov[0].dl&&s0>ov[0].s&&e0>=ov[0].e){const nx=cy.phases.find(q=>q.id!=selfId&&q.id!=ov[0].id&&s0<=q.e&&e0>=q.s);if(!nx)return{ok:true,trim:ov[0],to:add(s0,-1)}}
+ return{ok:false,msg:`Deload nachodzi na ${ov.map(q=>esc(phLbl(q))).join(', ')}. Deload może zabrać tylko końcówkę jednej fazy.`}}
+function dlInfoTxt(cy,s0,e0,id){if(!s0||!e0||s0>e0)return 'Koniec musi być po początku.';const r=dlPlan(cy,s0,e0,id);return !r.ok?r.msg:r.trim?`Faza ${esc(r.trim.n)} skończy się ${fd(r.to)}, a ostatnie dni będą deloadem.`:''}
+const dlBadge=d=>{const p=d&&phAny(d);return p&&p.dl?`<span>Deload</span> ${esc(phLbl(p).replace(/^Deload ?/,''))}${phLbl(p)!='Deload'?', ':''}${fd(p.s)}–${fd(p.e)}. Lżej niż zwykle.`:''};
 function cySheet(){const cy=ecy();openSheet(`<div class="sh-top"><div><p class="mut">Cykl</p><h2>Nazwa i cel</h2></div>${XBTN}</div>
  <label for="cy-name">Nazwa</label><input id="cy-name" value="${esc(cy.name)}">
  <div class="row"><div><label for="cy-goal">Cel <span class="mut">opcjonalnie</span></label><input id="cy-goal" placeholder="np. zawody, wyjazd w skały" value="${esc(cy.goal)}"></div><div><label for="cy-gdate">Data celu</label><input id="cy-gdate" type="date" value="${cy.goalDate||''}"></div></div>
  <div class="btns"><button class="go" data-act="cysave">Zapisz</button></div>`)}
 function phSave(id,isNew){const cy=ecy(),n=$('#pe-n').value.trim(),s0=$('#pe-s').value,e0=$('#pe-e').value;
  if(!n){toast('Wpisz nazwę fazy.');return}if(!s0||!e0||s0>e0){toast('Koniec fazy musi być po początku.');return}
- const o=cy.phases.find(q=>q.id!=id&&s0<=q.e&&e0>=q.s);if(o){toast(`Ta faza nachodzi na fazę ${o.n} (${fd(o.s)}–${fd(o.e)}).`);return}
+ const o=cy.phases.find(q=>q.id!=id&&s0<=q.e&&e0>=q.s);if(o){toast(`Ta faza nachodzi na ${o.dl?'deload':'fazę'} ${esc(phLbl(o))} (${fd(o.s)}–${fd(o.e)}).`);return}
  const ph={id:isNew?uid():id,n,c:$('#pe-c').value,s:s0,e:e0,note:$('#pe-note').value};
  if(isNew)cy.phases.push(ph);else cy.phases=cy.phases.map(q=>q.id==id?ph:q);cy.phases.sort(bySD);closeSheet();putC(1);toast(isNew?'Dodano fazę':'Zapisano fazę')}
 /* ---------- drills ---------- */
@@ -919,7 +944,7 @@ function homeView(){const el=$('#v-home');if(!el)return;const dn=done().sort((a,
  if(last){const ago=diff(last.date,T),lv=lvlOf(last),x=summ(last);
   h+=`<div class="card hcard tcard tlast" style="--tc:${tcv(last.type)}" role="button" tabindex="0" data-act="view" data-id="${last.id}"><div class="h"><div><p class="mut" style="margin:0 0 4px">Ostatnia sesja, ${ago==0?'dzisiaj':ago==1?'wczoraj':ago+' dni temu'}</p><b style="font:700 24px var(--disp);color:color-mix(in srgb,var(--tc) 75%,var(--ink))">${esc(last.type)}${last.place&&last.place!=last.type?`<span class="mut" style="font-weight:600">, ${esc(last.place)}</span>`:''}</b><p>${last.min?hm(last.min):last.type=='Skały'?'dzień w skałach':''}${last.rpe?`, RPE ${last.rpe}`:''}${lv?`<span class="tag" style="background:color-mix(in srgb,var(${lv[1]}) 22%,var(--p))">${lv[0]}</span>`:''}</p>${x?`<p class="mut">${x}</p>`:''}</div><span class="chev" aria-hidden="true">›</span></div></div>`}
  const p=phOf(T);if(p){const ss=dn.filter(x=>x.date>=p.s&&x.date<=p.e),r=ss.filter(x=>x.rpe);
-  h+=`<button class="card hphase" data-tab="prog" style="--pc:var(${p.c})"><span class="hwtop"><b>Faza ${esc(p.n)} w liczbach</b><span class="mut">Postęp ›</span></span><span class="tiles sh-tiles hstats" style="margin-top:10px"><span><b>${ss.length}</b><span>${plS(ss.length)}</span></span><span><b>${(sum(ss.map(x=>x.min))/60).toFixed(1)}</b><span>godzin</span></span><span><b>${r.length?(sum(r.map(x=>x.rpe))/r.length).toFixed(1):'–'}</b><span>średnie RPE</span></span></span></button>`}
+  h+=`<button class="card hphase" data-tab="prog" style="--pc:var(${p.c})"><span class="hwtop"><b>${p.dl?'Deload':'Faza '+esc(p.n)} w liczbach</b><span class="mut">Postęp ›</span></span><span class="tiles sh-tiles hstats" style="margin-top:10px"><span><b>${ss.length}</b><span>${plS(ss.length)}</span></span><span><b>${(sum(ss.map(x=>x.min))/60).toFixed(1)}</b><span>godzin</span></span><span><b>${r.length?(sum(r.map(x=>x.rpe))/r.length).toFixed(1):'–'}</b><span>średnie RPE</span></span></span></button>`}
  if(!cyc().phases.length)h+='<div class="card"><h2>Ustaw swój cykl</h2><p class="mut">Podziel trening na fazy, np. Capacity, Strength i Power, z datami. Fazy kolorują pasek, Historię i Postęp.</p><div class="btns"><button class="go" data-tab="cyc">Przejdź do cyklu</button></div></div>';
  if(!dn.length)h+='<div class="card"><p>Witaj w dzienniku.</p><p class="mut">Zapisz pierwszą sesję przyciskiem powyżej. Tu zobaczysz ostatni trening, bieżący tydzień i liczby z obecnej fazy.</p></div>';
  el.innerHTML=h}
@@ -997,12 +1022,21 @@ document.addEventListener('click',e=>{const t=e.target;let b;
  else if(a=='csvcyc'){const cy=ecy(),ps=[...cy.phases].sort(bySD);if(ps.length)csvDownload('dziennik-'+cy.name,csvRows(cy,ps))}
  else if(a=='csvph'){const cy=ecy(),p=cy.phases.find(q=>q.id==id);if(p)csvDownload('dziennik-'+cy.name+'-'+p.n,csvRows(cy,[p]))}
  else if(a=='cysave'){const cy=ecy();cy.name=$('#cy-name').value.trim()||'Cykl';cy.goal=$('#cy-goal').value.trim();cy.goalDate=$('#cy-gdate').value;closeSheet();putC(1);toast('Zapisano cykl')}
+ else if(a=='dlnew'){const cy=ecy(),p=cy.phases.find(q=>q.id==id);if(!p)return;const nx=[...cy.phases].sort(bySD).find(q=>q.s>p.e);let s0,e0;
+  if(!nx||diff(p.e,nx.s)>1){s0=add(p.e,1);e0=add(s0,6);if(nx&&e0>=nx.s)e0=add(nx.s,-1)}else{e0=p.e;s0=add(p.e,-6);if(s0<=p.s)s0=add(p.s,1)}
+  dlSheet({id:'',s:s0,e:e0},true,dlInfoTxt(cy,s0,e0,''))}
+ else if(a=='dledit'){const cy=ecy(),d=cy.phases.find(q=>q.id==id);if(d)dlSheet(d,false,dlInfoTxt(cy,d.s,d.e,d.id))}
+ else if(a=='dlsave'){const cy=ecy(),s0=$('#dl-s').value,e0=$('#dl-e').value;if(!s0||!e0||s0>e0){toast('Koniec deloadu musi być po początku.');return}
+  const r=dlPlan(cy,s0,e0,b.dataset.new?'':id);if(!r.ok){toast(r.msg.replace(/&amp;/g,'&'));return}if(r.trim)r.trim.e=r.to;
+  if(b.dataset.new)cy.phases.push({id:uid(),n:'Deload',s:s0,e:e0,c:'--mut',note:'',dl:true});else{const d=cy.phases.find(q=>q.id==id);d.s=s0;d.e=e0}
+  cy.phases.sort(bySD);closeSheet();putC(1);toast(r.trim?`Zapisano deload, ${r.trim.n} kończy się ${fd(r.to)}`:'Zapisano deload')}
+ else if(a=='dldel'){if(b.dataset.arm){const cy=ecy();cy.phases=cy.phases.filter(q=>q.id!=id);closeSheet();putC(1);toast('Usunięto deload')}else{b.dataset.arm=1;b.lastChild.textContent='Na pewno?'}}
  else if(a=='phedit'){const p=ecy().phases.find(q=>q.id==id);if(p)phSheet(p,false)}
- else if(a=='phnew'){const cy=ecy(),l=[...cy.phases].sort(bySD).pop(),st=l?add(l.e,1):T;phSheet({id:'',n:'',s:st,e:add(st,27),c:COL[cy.phases.length%COL.length][0],note:''},true)}
+ else if(a=='phnew'){const cy=ecy(),l=[...cy.phases].sort(bySD).pop(),st=l?add(l.e,1):T;phSheet({id:'',n:'',s:st,e:add(st,27),c:COL[cy.phases.filter(q=>!q.dl).length%COL.length][0],note:''},true)}
  else if(a=='phsave')phSave(id,!!b.dataset.new);
  else if(a=='phdel'){if(b.dataset.arm){const cy=ecy();cy.phases=cy.phases.filter(q=>q.id!=id);closeSheet();putC(1);toast('Usunięto fazę')}else{b.dataset.arm=1;b.lastChild.textContent='Na pewno?';$('#sheet').hidden=false}}
  else if(a=='extend'){const v=$('#ext').value,cy=ecy(),l=[...cy.phases].sort(bySD).pop();if(!v||v<l.s){toast('Wybierz datę po początku fazy '+l.n+'.');return}l.e=v;putC(1);toast('Przedłużono fazę '+l.n)}
- else if(a=='phtoday'){const cy=ecy();phSheet({id:'',n:'',s:T,e:add(T,27),c:COL[cy.phases.length%COL.length][0],note:''},true)}
+ else if(a=='phtoday'){const cy=ecy();phSheet({id:'',n:'',s:T,e:add(T,27),c:COL[cy.phases.filter(q=>!q.dl).length%COL.length][0],note:''},true)}
  else if(a=='backact'){cedit=null;cycleView()}
 });
 document.addEventListener('change',e=>{const rk=e.target.closest&&e.target.closest('.rkr');if(rk)rk.dataset.t=1;if(e.target.classList&&e.target.classList.contains('rk-sc')){const g=e.target.parentNode.querySelector('.rk-g');g.innerHTML=rkGradeOpts(e.target.value,+g.value);return}const hk={'hf-cyc':'cyc','hf-ph':'ph','hf-place':'place','hf-day':'day'}[e.target.id];if(hk){HF[hk]=e.target.value;if(hk=='cyc')HF.ph='all';saveHF();hFilters();hList();return}if(e.target.id=='istest')tqUpdate();if(e.target.id=='type')tsel();else if(e.target.id=='gripsel'){gripSel=e.target.value;prog()}});
@@ -1011,7 +1045,7 @@ document.addEventListener('input',e=>{if(e.target.closest&&e.target.closest('#v-
 document.addEventListener('change',e=>{if(e.target.closest&&e.target.closest('#v-add'))saveDraft()},true);
 document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('#v-add button');if(t&&!['save-done','save-plan','cancel'].includes(t.dataset.act))setTimeout(saveDraft,0)});
 document.addEventListener('input',e=>{if(e.target.id=='date')document.querySelectorAll('[data-setdate]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.setdate==e.target.value))});
-document.addEventListener('change',e=>{if(e.target.id=='wkdate'&&e.target.value){if(e.target.value<minD0())e.target.value=minD0();weekOff=Math.round(diff(wk(T),wk(e.target.value))/7);planView()}});
+document.addEventListener('change',e=>{if(e.target.id=='dl-s'||e.target.id=='dl-e'){const b=$('[data-act=dlsave]'),el=$('#dl-info');if(b&&el)el.innerHTML=dlInfoTxt(ecy(),$('#dl-s').value,$('#dl-e').value,b.dataset.new?'':b.dataset.id)}if(e.target.id=='date'){const el=$('#dlinfo');if(el)el.innerHTML=dlBadge(e.target.value)}if(e.target.id=='wkdate'&&e.target.value){if(e.target.value<minD0())e.target.value=minD0();weekOff=Math.round(diff(wk(T),wk(e.target.value))/7);planView()}});
 document.addEventListener('click',e=>{const l=e.target.closest('.wkpick');if(l){const i=l.querySelector('input');try{i.showPicker();e.preventDefault()}catch(er){}}});
 document.addEventListener('click',e=>{const i=e.target;if(i.tagName=='INPUT'&&i.type=='date'&&i.id!='wkdate'){try{i.showPicker()}catch(er){}}});
 /* pola liczbowe: tylko cyfry (int) albo cyfry z jednym przecinkiem/kropką i max 2 miejscami po nim (dec) */
