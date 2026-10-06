@@ -380,6 +380,11 @@ input[type=date]::-webkit-date-and-time-value{text-align:left;margin:0}
 .sheetp .btns{flex-wrap:wrap}
 .sheetp{max-height:min(calc(100vh - 150px),860px)!important;max-height:min(calc(100dvh - 150px),860px)!important;top:calc(50% - 40px)!important}
 .sheetbg{background:rgba(6,6,8,.72)!important}
+/* WebKit (iOS) daje polu daty własną minimalną szerokość przez -webkit-min-logical-width */
+input[type=date]{-webkit-min-logical-width:0!important;min-inline-size:0!important;max-width:100%!important}
+.row>div{min-width:0;overflow:visible}
+.row input[type=date]{width:100%!important}
+.appver{display:block;margin-top:10px;font-size:12px;color:var(--mut);opacity:.7}
 </style>
 </head>
 <body class="loggedout">
@@ -398,6 +403,7 @@ input[type=date]::-webkit-date-and-time-value{text-align:left;margin:0}
 const CFG=window.DZIENNIK_CONFIG||{};
 const SUPABASE_URL=String(CFG.url||'').trim();
 const SUPABASE_KEY=String(CFG.key||'').trim();
+const APPVER='06.10 · 11:55';
 const LS='climb.sessions.v1',LSC='climb.cycles.v1';
 const COL=[['--c1','Zielony'],['--c2','Żółty'],['--c3','Czerwony'],['--c4','Fioletowy'],['--c5','Niebieski'],['--c6','Pomarańczowy'],['--c7','Turkusowy'],['--c8','Różowy']];
 const TY=['Capacity','Limit','Tindeq','Tension Board','Kilter Board','Technika','Skały','Inne'],BOARDS=['Tension Board','Kilter Board'];
@@ -819,7 +825,7 @@ function hList(){const c={G:'var(--c1)',Y:'var(--c2)',R:'var(--c3)'},list=hFilte
 function his(){if(!$('#hlist'))$('#v-his').innerHTML='<div id="hmig"></div><div id="hfilt"></div><div id="hlist"></div><div id="hbak"></div>';
  $('#hmig').innerHTML=false?`<div class="card ok"><b>${pending.length} ${pending.length==1?'sesja jest':'sesji jest'} zapisanych tylko w tej przeglądarce.</b><p class="mut">Przenieś je na konto, żeby były na każdym urządzeniu.</p><div class="btns"><button class="go" data-act="migrate">Przenieś na konto</button></div></div>`:'';
  if(!$('#hfilt').contains(document.activeElement))hFilters();hList();
- if(!$('#hbak').innerHTML)$('#hbak').innerHTML=`<div class="card"><h2>Kopia danych</h2><p class="mut" id="hbaktxt"></p><textarea id="dat" rows="4"></textarea><div class="btns"><button data-act="exp">Pokaż dane</button><button data-act="imp">Wczytaj z pola</button></div></div>`;
+ if(!$('#hbak').innerHTML)$('#hbak').innerHTML=`<div class="card"><h2>Kopia danych</h2><p class="mut" id="hbaktxt"></p><textarea id="dat" rows="4"></textarea><div class="btns"><button data-act="exp">Pokaż dane</button><button data-act="imp">Wczytaj z pola</button></div><span class="appver">Wersja aplikacji: ${APPVER}</span></div>`;
  $('#hbaktxt').textContent='Dane są zapisane na Twoim koncie i widzisz je po zalogowaniu na każdym urządzeniu.'+' Kopia w polu poniżej to zapas na wszelki wypadek.'}
 
 /* ---------- cycle ---------- */
