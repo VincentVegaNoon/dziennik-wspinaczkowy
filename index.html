@@ -410,7 +410,7 @@ input[type=date]{-webkit-min-logical-width:0!important;min-inline-size:0!importa
 const CFG=window.DZIENNIK_CONFIG||{};
 const SUPABASE_URL=String(CFG.url||'').trim();
 const SUPABASE_KEY=String(CFG.key||'').trim();
-const APPVER='06.10 · 16:40';
+const APPVER='06.10 · 23:40';
 const LS='climb.sessions.v1',LSC='climb.cycles.v1';
 const COL=[['--c1','Zielony'],['--c2','Żółty'],['--c3','Czerwony'],['--c4','Fioletowy'],['--c5','Niebieski'],['--c6','Pomarańczowy'],['--c7','Turkusowy'],['--c8','Różowy']];
 const TY=['Capacity','Limit','Tindeq','Tension Board','Kilter Board','Technika','Skały','Inne'],BOARDS=['Tension Board','Kilter Board'];
@@ -538,7 +538,7 @@ function form(src,mode,pdate){const v=src||{},isPlan=mode.startsWith('plan');
  <label>Jak ciężko było? <span class="mut">Nie wiesz? Pomiń, policzę z Twoich poprzednich sesji.</span></label><div class="pills">${pills('rpe',RP)}</div>
  <label for="pain">Ból po sesji <span class="mut">miejsce, jeśli był</span></label><input id="pain" value="${esc(v.pain)}"></div>
  <div class="card" data-t="Capacity"><h2>Przejścia wg poziomu</h2>${[1,2,3,4,5,6,7,8,9].map(l=>`<div class="cnt"><span class="lvl" style="--hc:${HCOL[l-1]};color:${HTXT[l-1]}" title="Poziom ${l}">${l}</span><button type="button" data-lv="${l}" data-d="-1" aria-label="mniej poz.${l}">−</button><input id="lv${l}" class="lvin${F.lv[l]?' on':''}" type="text" inputmode="numeric" data-n="int" maxlength="3" data-max="999" aria-label="Przejścia na poziomie ${l}" value="${F.lv[l]||0}"><button type="button" data-lv="${l}" data-d="1" aria-label="więcej poz.${l}">+</button></div>`).join('')}<p class="captot">Razem: <b id="captot">${sum(Object.values(F.lv))}</b> przejść</p></div>
- <div class="card" data-t="Limit"><h2>Bouldery limitowe</h2><p class="mut">Jeden wiersz na boulder: poziom, liczba prób, czy był top.</p><div id="limrows">${lim.map(limRow).join('')}</div><button type="button" data-act="addrow">Dodaj boulder</button></div>
+ <div class="card" data-t="Limit|Inne"><h2 id="limh">Bouldery limitowe</h2><p class="mut" id="limhint">Jeden wiersz na boulder: poziom, liczba prób, czy był top.</p><div id="limrows">${lim.map(limRow).join('')}</div><button type="button" data-act="addrow">Dodaj boulder</button></div>
  <div class="card" data-t="Tindeq"><h2>Tindeq</h2><label for="grip">Chwyt / protokół</label><input id="grip" list="gl" placeholder="np. Listwa 20 mm, half crimp" value="${esc(ti.grip)}"><datalist id="gl">${grips.map(g=>`<option>${esc(g)}`).join('')}</datalist>
  <div class="row">${n('tsets','Serie',ti.sets,'int',2,99)}${n('treps','Powtórzenia w serii',ti.reps,'int',3,999)}${n('tl','Lewa (kg)',ti.l,'dec',6,300)}${n('tr','Prawa (kg)',ti.r,'dec',6,300)}${n('sec','Czas zwisu (s)',ti.sec,'dec',5,999)}${n('pct','% maxa',ti.pct,'int',3,200)}</div><div id="tqmax"></div>
  <label class="chk" style="margin-top:12px"><input type="checkbox" id="istest"${ti.test?' checked':''}>To był test maxa (zapisze nowy max dla tego chwytu)</label></div>
@@ -573,7 +573,7 @@ function tqUpdate(){const el=$('#tqmax');if(!el)return;const m=curMax($('#grip')
 function minD0(){return done().reduce((m,x)=>x.date<m?x.date:m,T)}
 function firstDate(){const cs=C.cycles.map(cStart).filter(Boolean).sort();const a=minD0(),b=cs[0]||a;return a<b?a:b}
 function placeList(){const c={};done().forEach(x=>{if(x.place&&x.type!='Skały'&&x.place!=x.type)c[x.place]=(c[x.place]||0)+1});['West','Murall','Makak','Dom'].forEach(x=>c[x]=c[x]||0);return Object.keys(c).sort((a,b)=>c[b]-c[a]||a.localeCompare(b,'pl')).slice(0,8)}
-function tsel(){const t=$('#type').value;document.querySelectorAll('#v-add [data-t]').forEach(e=>e.hidden=!e.dataset.t.split('|').includes(t));if(BOARDS.includes(t)&&$('#tbh'))$('#tbh').textContent=t;$('#pmrow').hidden=t=='Skały';$('#accw').hidden=t=='Skały'}
+function tsel(){const t=$('#type').value;document.querySelectorAll('#v-add [data-t]').forEach(e=>e.hidden=!e.dataset.t.split('|').includes(t));if(BOARDS.includes(t)&&$('#tbh'))$('#tbh').textContent=t;if($('#limh')){$('#limh').textContent=t=='Inne'?'Bouldery':'Bouldery limitowe';$('#limhint').textContent=t=='Inne'?'Opcjonalnie. Wpisz te, które pamiętasz: poziom, liczba prób, czy był top. Puste wiersze się nie zapiszą.':'Jeden wiersz na boulder: poziom, liczba prób, czy był top.'}$('#pmrow').hidden=t=='Skały';$('#accw').hidden=t=='Skały'}
 function build(act){const g=i=>(($(i)||{}).value||'').trim(),num=i=>{const t=g(i).replace(',','.');return t===''||isNaN(+t)?null:+t};
  const rockT=$('#type').value=='Skały',min=rockT?null:num('#min');
  const type=$('#type').value,s={id:F.id||uid(),status:act,date:g('#date')||T,type,place:rockT?'':g('#place'),min,note:g('#note'),accs:rockT?[]:[...document.querySelectorAll('#acrows .acr')].map(r=>{const q=c=>r.querySelector(c).value.trim(),nn=c=>{const v=q(c).replace(',','.');return v===''||isNaN(+v)?null:+v};return{name:q('.ac-name'),sets:nn('.ac-sets'),reps:nn('.ac-reps'),kg:nn('.ac-kg')}}).filter(a=>a.name)};
@@ -581,7 +581,7 @@ function build(act){const g=i=>(($(i)||{}).value||'').trim(),num=i=>{const t=g(i
  let newDr=[];if(DRF.includes(type)){const other=splitDr(g('#drill')),all=[...F.drills];other.forEach(x=>{if(!all.some(y=>y.toLowerCase()==x.toLowerCase()))all.push(x)});s.drill=all.join(', ');
   newDr=other.filter(x=>!C.drills.some(d=>d.name.toLowerCase()==x.toLowerCase()))}
  if(type=='Capacity')s.cap={...F.lv};
- if(type=='Limit')s.lim=[...document.querySelectorAll('#limrows .lr')].map(r=>{const i=r.querySelectorAll('input');return{lv:i[0].value===''?null:+i[0].value,tries:i[1].value===''?null:+i[1].value,top:i[2].checked}}).filter(r=>r.lv!=null||r.tries!=null);
+ if(type=='Limit'||type=='Inne')s.lim=[...document.querySelectorAll('#limrows .lr')].map(r=>{const i=r.querySelectorAll('input');return{lv:i[0].value===''?null:+i[0].value,tries:i[1].value===''?null:+i[1].value,top:i[2].checked}}).filter(r=>r.lv!=null||r.tries!=null);
  let newMax=null;if(type=='Tindeq'){s.tind={sets:num('#tsets'),reps:num('#treps'),grip:g('#grip'),l:num('#tl'),r:num('#tr'),sec:num('#sec'),pct:num('#pct'),test:$('#istest').checked};
   if(act=='done'&&s.tind.test&&(s.tind.l!=null||s.tind.r!=null)){s.tind.pct=100;newMax={id:'m'+s.id,grip:s.tind.grip,date:s.date,l:s.tind.l,r:s.tind.r}}}
  if(type=='Skały')s.rlen=F.rlen||2;if(type=='Skały')s.rock={routes:[...document.querySelectorAll('#rkrows .rkr')].filter(r=>r.querySelector('.rk-name').value.trim()||r.querySelector('.rk-tries').value||r.dataset.t).map(r=>({name:r.querySelector('.rk-name').value.trim(),sc:r.querySelector('.rk-sc').value,g:+r.querySelector('.rk-g').value,st:r.querySelector('.rk-st').value,tries:r.querySelector('.rk-tries').value===''?null:+r.querySelector('.rk-tries').value}))};
@@ -672,6 +672,7 @@ function hasDraft(){return dirty||!!loadDraft()}
 
 /* ---------- summaries ---------- */
 function summ(s){if(s.type=='Capacity'&&s.cap){const t=Object.entries(s.cap).filter(e=>e[1]).map(e=>'poz.'+e[0]+' × '+e[1]).join(', ');return t?`<b>Razem ${capN(s)}</b>: ${t}`:'brak przejść'}
+ if(s.type=='Inne'&&s.lim&&s.lim.length){const t=s.lim.filter(r=>r.top);return `${s.lim.length} ${s.lim.length==1?'boulder':s.lim.length%10>=2&&s.lim.length%10<=4&&(s.lim.length%100<12||s.lim.length%100>14)?'bouldery':'boulderów'}, ${t.length} ${t.length==1?'top':t.length%10>=2&&t.length%10<=4&&(t.length%100<12||t.length%100>14)?'topy':'topów'}${limTop(s)?', max poz.'+limTop(s):''}, prób ${sum(s.lim.map(r=>r.tries||0))}`}
  if(s.type=='Limit'){if(s.lim&&s.lim.length){const t=s.lim.filter(r=>r.top);return `${t.length} z ${s.lim.length} topów${limTop(s)?', max poz.'+limTop(s):''}, prób ${sum(s.lim.map(r=>r.tries))}`}
   if(s.limOld)return `max poz.${s.limOld.top??'?'}, topy ${s.limOld.sends??'?'} z ${s.limOld.tries??'?'} prób`;return ''}
  if(s.type=='Tindeq'&&s.tind){const t=s.tind;return `${t.sets?t.sets+(t.reps?'×'+t.reps:' serii')+', ':''}${t.grip?esc(t.grip)+': ':''}L ${t.l??'?'} kg, R ${t.r??'?'} kg${t.sec?', '+t.sec+' s':''}${t.test?', test maxa':t.pct?', '+t.pct+'% maxa':''}`}
@@ -939,7 +940,7 @@ function view(id){const s=byId(id);if(!s)return;const isP=s.status=='plan',GC={G
  const rt=!isP?relType(s):null,tiles=[[s.min?hm(s.min):s.type=='Skały'?'cały dzień':'–','czas'],[isP?'–':s.rpe?s.rpe:'~'+eff(s),isP?'RPE':s.rpe?'RPE, '+lv[0].replace(' sesja','').toLowerCase():'RPE szacowane'],[rt?rt+'%':'–',rt?`obciążenia typowej sesji ${esc(s.type)}`:'za mało sesji tego typu do porównania']];
  h+=`<div class="tiles sh-tiles">${tiles.map(t=>`<div><b>${t[0]}</b><span>${t[1]}</span></div>`).join('')}</div>`;
  if(s.cap&&capN(s)){const mx=Math.max(...Object.values(s.cap));h+=`<h3>Przejścia</h3>`+Object.entries(s.cap).filter(e=>e[1]).map(([l,n])=>`<div class="sh-bar"><span class="lvl" style="--hc:${HCOL[l-1]};color:${HTXT[l-1]}">${l}</span><i style="width:${n/mx*100}%;background:${HCOL[l-1]}"></i><b>${n}</b></div>`).join('')+`<div class="sh-sum"><span>Razem</span><b>${capN(s)}</b></div>`}
- if(s.lim&&s.lim.length)h+=`<h3>Bouldery limitowe</h3>`+s.lim.map(r=>`<div class="sh-row"><span class="lvl" style="--hc:${HCOL[(r.lv||1)-1]||'var(--soft)'};color:${HTXT[(r.lv||1)-1]||'var(--ink)'}">${r.lv??'?'}</span><span>${r.tries??'?'} ${plTries(r.tries)}</span><span class="tag${r.top?' top':''}">${r.top?'Top':'bez topu'}</span></div>`).join('');
+ if(s.lim&&s.lim.length)h+=`<h3>${s.type=='Inne'?'Bouldery':'Bouldery limitowe'}</h3>`+s.lim.map(r=>`<div class="sh-row"><span class="lvl" style="--hc:${HCOL[(r.lv||1)-1]||'var(--soft)'};color:${HTXT[(r.lv||1)-1]||'var(--ink)'}">${r.lv??'?'}</span><span>${r.tries??'?'} ${plTries(r.tries)}</span><span class="tag${r.top?' top':''}">${r.top?'Top':'bez topu'}</span></div>`).join('');
  else if(s.limOld)h+=`<h3>Limit</h3><p>Max poz.${s.limOld.top??'?'}, topy ${s.limOld.sends??'?'} z ${s.limOld.tries??'?'} prób.</p>`;
  if(s.tind){const t=s.tind;h+=`<h3>Tindeq${t.grip?`: ${esc(t.grip)}`:''}</h3><div class="tiles sh-tiles"><div><b>${t.l??'–'}</b><span>lewa kg</span></div><div><b>${t.r??'–'}</b><span>prawa kg</span></div><div><b>${t.test?'test':t.pct?t.pct+'%':'–'}</b><span>${t.test?'maxa':'maxa'}</span></div></div>${t.sets||t.reps||t.sec?`<div class="tiles sh-tiles" style="margin-top:8px"><div><b>${t.sets??'–'}</b><span>serie</span></div><div><b>${t.reps??'–'}</b><span>powt. w serii</span></div><div><b>${t.sec?t.sec+' s':'–'}</b><span>czas zwisu</span></div></div>`:''}`}
  if(s.pw){const w=s.pw,pr=w.probs||[],t=pr.filter(r=>r.top),mx=t.length?Math.max(...t.map(r=>r.g)):null;
