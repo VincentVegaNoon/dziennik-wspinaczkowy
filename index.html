@@ -370,6 +370,16 @@ body.loggedout #auth{min-height:100vh;display:flex;align-items:center;justify-co
 .dladd:hover{color:var(--ink);border-color:var(--accent)!important}
 .seg.dl{background:repeating-linear-gradient(135deg,rgba(255,255,255,.18) 0 3px,transparent 3px 6px)!important}.seg.dl i{background:rgba(255,255,255,.35)!important}
 .dlinfo{margin:6px 0 0;font-size:13px;color:var(--mut)}.dlinfo:empty{display:none}.dlinfo span{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:2px 8px;border-radius:99px;background:rgba(255,255,255,.1);color:var(--ink);margin-right:4px}
+
+/* iOS Safari: pola daty mają własną minimalną szerokość i wychodzą poza siatkę */
+.row{grid-template-columns:repeat(auto-fit,minmax(min(130px,100%),1fr))!important}
+.row>*{min-width:0}
+input[type=date]:not(#wkdate){-webkit-appearance:none;appearance:none;display:block;width:100%;max-width:100%;min-width:0;box-sizing:border-box;text-align:left;min-height:48px}
+input[type=date]::-webkit-date-and-time-value{text-align:left;margin:0}
+@supports (-webkit-touch-callout:none){input[type=date]:not(#wkdate){padding-right:40px;background:var(--field) url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27%23F3F3F3%27%20stroke-width%3D%272%27%20stroke-linecap%3D%27round%27%3E%3Crect%20x%3D%274%27%20y%3D%275%27%20width%3D%2716%27%20height%3D%2715%27%20rx%3D%272%27/%3E%3Cpath%20d%3D%27M4%2010h16M9%203v4M15%203v4%27/%3E%3C/svg%3E") right 12px center/18px no-repeat}}
+.sheetp .btns{flex-wrap:wrap}
+.sheetp{max-height:min(calc(100vh - 150px),860px)!important;max-height:min(calc(100dvh - 150px),860px)!important;top:calc(50% - 40px)!important}
+.sheetbg{background:rgba(6,6,8,.72)!important}
 </style>
 </head>
 <body class="loggedout">
@@ -854,13 +864,13 @@ function csvRows(cy,ps){const R=[['Data','Dzień','Faza','Typ','Miejsce','Czas (
 function csvDownload(name,R){const body='\uFEFF'+R.map(r=>r.map(csvCell).join(';')).join('\r\n');
  const fn=(name||'eksport').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ł/g,'l').replace(/Ł/g,'L').replace(/[^\w-]+/g,'-').replace(/^-+|-+$/g,'')+'.csv';
  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([body],{type:'text/csv;charset=utf-8'}));a.download=fn;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000);toast('Pobrano '+fn)}
-function openSheet(html){$('#sheetp').innerHTML=html;$('#sheet').hidden=false;document.body.style.overflow='hidden';$('#sheetp').scrollTop=0}
+function openSheet(html){const sh=$('#sheet');if(sh.parentNode!==document.body)document.body.appendChild(sh);$('#sheetp').innerHTML=html;$('#sheet').hidden=false;document.body.style.overflow='hidden';$('#sheetp').scrollTop=0}
 const XBTN='<button class="sh-x" data-act="close" aria-label="Zamknij"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>';
 function phSheet(p,isNew){openSheet(`<div class="sh-top"><div><p class="mut">${esc(ecy().name)}</p><h2>${isNew?'Nowa faza':esc(p.n)}</h2></div>${XBTN}</div>
  <div class="row"><div><label for="pe-n">Nazwa fazy</label><input id="pe-n" value="${esc(p.n)}" placeholder="np. Capacity"></div><div><label for="pe-c">Kolor</label><select id="pe-c">${COL.map(c=>`<option value="${c[0]}"${c[0]==p.c?' selected':''}>${c[1]}</option>`).join('')}</select></div></div>
  <div class="row"><div><label for="pe-s">Początek</label><input id="pe-s" type="date" value="${p.s}"></div><div><label for="pe-e">Koniec</label><input id="pe-e" type="date" value="${p.e}"></div></div>
  <label for="pe-note">Wnioski po fazie</label><textarea id="pe-note" rows="5" placeholder="Co działało, co zmienić w następnym cyklu">${esc(p.note)}</textarea>
- <div class="btns"><button class="go" data-act="phsave" data-id="${p.id}"${isNew?' data-new="1"':''}>Zapisz fazę</button>${isNew?'':`<button data-act="csvph" data-id="${p.id}" style="flex:0 0 auto">Eksport do Excela</button><button class="rmb" style="flex:0 0 auto" data-act="phdel" data-id="${p.id}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>Usuń fazę</button>`}</div>`);setTimeout(()=>$('#pe-n').focus(),30)}
+ <div class="btns"><button class="go" data-act="phsave" data-id="${p.id}"${isNew?' data-new="1"':''}>Zapisz fazę</button>${isNew?'':`<button data-act="csvph" data-id="${p.id}" style="flex:0 0 auto">Eksport do Excela</button><button class="rmb" style="flex:0 0 auto" data-act="phdel" data-id="${p.id}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>Usuń fazę</button>`}</div>`);if(isNew)setTimeout(()=>$('#pe-n').focus(),30)}
 function dlSheet(d,isNew,info){const cy=ecy();openSheet(`<div class="sh-top"><div><p class="mut">${esc(cy.name)}</p><h2>${isNew?'Nowy deload':esc(phLbl(d))}</h2></div>${XBTN}</div>
  <p class="mut">Sesje z tych dni liczą się do deloadu, a nie do fazy. Dzięki temu statystyki fazy pokazują tylko właściwy trening.</p>
  <div class="row"><div><label for="dl-s">Początek</label><input id="dl-s" type="date" value="${d.s}"></div><div><label for="dl-e">Koniec</label><input id="dl-e" type="date" value="${d.e}"></div></div>
