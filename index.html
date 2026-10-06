@@ -392,6 +392,10 @@ input[type=date]{-webkit-min-logical-width:0!important;min-inline-size:0!importa
 .row>div{min-width:0;overflow:visible}
 .row input[type=date]{width:100%!important}
 .appver{display:block;margin-top:10px;font-size:12px;color:var(--mut);opacity:.7}
+/* telefon: bez przybliżania po podwójnym stuknięciu (szczypanie dalej działa); pola min. 16px, żeby iOS nie przybliżał przy wpisywaniu */
+html,body{touch-action:manipulation}
+button,a,label,input,select,textarea,.pill,.wchip,[data-act]{touch-action:manipulation}
+input,select,textarea{font-size:max(16px,1em)}
 </style>
 </head>
 <body class="loggedout">
@@ -410,7 +414,7 @@ input[type=date]{-webkit-min-logical-width:0!important;min-inline-size:0!importa
 const CFG=window.DZIENNIK_CONFIG||{};
 const SUPABASE_URL=String(CFG.url||'').trim();
 const SUPABASE_KEY=String(CFG.key||'').trim();
-const APPVER='06.10 · 23:40';
+const APPVER='06.10 · 23:50';
 const LS='climb.sessions.v1',LSC='climb.cycles.v1';
 const COL=[['--c1','Zielony'],['--c2','Żółty'],['--c3','Czerwony'],['--c4','Fioletowy'],['--c5','Niebieski'],['--c6','Pomarańczowy'],['--c7','Turkusowy'],['--c8','Różowy']];
 const TY=['Capacity','Limit','Tindeq','Tension Board','Kilter Board','Technika','Skały','Inne'],BOARDS=['Tension Board','Kilter Board'];
