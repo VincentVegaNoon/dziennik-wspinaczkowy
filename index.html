@@ -323,6 +323,43 @@ body.loggedout #auth{min-height:100vh;display:flex;align-items:center;justify-co
 .amsg{min-height:22px;margin:12px 0 10px;font-size:14px;color:var(--mut)}.amsg.err{color:#FF8A80}
 .alink{display:block;margin:12px auto 0;background:none;border:0;color:var(--mut);text-decoration:underline;min-height:36px}
 .logout{margin-left:auto;font-size:13px!important;min-height:30px!important;padding:2px 12px!important;background:rgba(0,0,0,.35)}
+
+/* ---- Cykl: odświeżony wygląd ---- */
+.cyhead{align-items:center!important;margin:6px 4px 12px!important}
+.cyhead h2{font-size:30px!important;line-height:1.02;margin:4px 0 0!important}
+.cylbl{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin:0}
+.cyacts{display:flex;gap:8px;flex-shrink:0}
+.cytiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0 0 18px}
+.cytiles div{background:var(--p);border-radius:14px;padding:12px 8px;text-align:center;box-shadow:var(--cardsh);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur)}
+.cytiles b{display:block;font:700 28px/1.05 var(--disp);font-variant-numeric:tabular-nums}
+.cytiles span{font-size:12px;color:var(--mut)}
+.phcard{background:var(--p)!important;box-shadow:var(--cardsh)!important;gap:10px!important}
+.phcard::before{width:11px!important;height:11px!important;left:-18px!important;top:22px!important}
+.phcard.past{padding:13px 16px 12px 18px!important;opacity:.82}
+.phcard.past .phname{font-size:20px!important}
+.phcard.past:hover{opacity:1}
+.phcard.fut{opacity:.6!important;padding:12px 16px 12px 18px!important}
+.phcard.fut .phname{font-size:20px!important}
+.phcard.now{outline:1.5px solid color-mix(in srgb,var(--accent) 65%,transparent)!important;outline-offset:0!important;padding:16px 16px 14px 18px!important}
+.phcard.now::before{background:var(--accent)!important;box-shadow:0 0 0 3px var(--bg),0 0 0 6px color-mix(in srgb,var(--accent) 35%,transparent)!important}
+.phkick{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:2px}
+.phmini{font-size:13px;color:var(--mut);text-align:right;line-height:1.45;white-space:nowrap}
+.phmini b{color:var(--ink)}
+.phseg{display:flex;gap:4px}
+.phseg i{flex:1;height:6px;border-radius:2px;background:rgba(255,255,255,.12)}
+.phseg i.on{background:rgba(255,255,255,.7)}
+.phseg i.cur{background:var(--accent)}
+.phtiles{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.cydates{margin:4px 0 0;color:var(--mut);font-size:14px;font-variant-numeric:tabular-nums}
+.phnote{-webkit-line-clamp:3!important}
+.phtiles>span{background:rgba(255,255,255,.06);border-radius:10px;padding:8px 4px;text-align:center;font-size:11px;color:var(--mut);min-width:0}
+.phtiles b{display:block;font:700 22px/1.1 var(--disp);color:var(--ink);font-variant-numeric:tabular-nums}
+.phtiles b.sm{font-size:14px;line-height:1.55;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.phnote{border-left:2px solid rgba(255,255,255,.18);padding-left:10px;color:color-mix(in srgb,var(--ink) 85%,transparent)}
+.phnote em{display:block;font-style:normal;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);margin-bottom:2px}
+.phnote.empty{border-left-style:dashed}
+.tgap span{font-size:12px;padding:2px 9px;border-radius:99px;background:rgba(255,255,255,.07);color:var(--mut)}
+.phadd{border-width:1.5px!important;min-height:50px!important}
 </style>
 </head>
 <body class="loggedout">
@@ -770,16 +807,19 @@ function cycleView(){const cy=ecy(),isAct=cy.id==C.active,ps=[...cy.phases].sort
  const prev=others[0],pn=prev?[...prev.phases].sort(bySD).filter(p=>p.note):[];
  if(isAct&&pn.length&&cStart(cy)>cEnd(prev))h+=notesCard({t:'Wnioski z cyklu '+prev.name,ps:pn});
  const wk_=ps.length?Math.ceil((diff(cStart(cy),end)+1)/7):0;
- h+=`<div class="cyhead"><div><p class="mut">${isAct?'Aktywny cykl':'Cykl z archiwum'}${ps.length?`, ${fd(cStart(cy))}–${fd(end)}, ${wk_} tyg.`:''}</p><h2>${esc(cy.name)}</h2>${cy.goal||cy.goalDate?`<p class="cygoal">${esc(cy.goal||'Cel')}${cy.goalDate?`, ${fd(cy.goalDate)}${cy.goalDate>=T?` (za ${diff(T,cy.goalDate)} dni)`:''}`:''}</p>`:''}</div><div style="display:flex;gap:8px">${ps.length?`<button class="iconbtn" data-act="csvcyc" aria-label="Eksportuj cykl do CSV (Excel)" title="Eksport cyklu do Excela (CSV)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg></button>`:''}<button class="iconbtn" data-act="cycedit" aria-label="Edytuj nazwę i cel cyklu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14 6l4 4"/></svg></button></div></div>`;
+ const css=ps.length?done().filter(x=>x.date>=cStart(cy)&&x.date<=end):[],crp=css.filter(x=>x.rpe),cLeft=end?diff(T,end):null;
+ h+=`<div class="cyhead"><div><p class="cylbl">${isAct?'Aktywny cykl':'Cykl z archiwum'}</p><h2>${esc(cy.name)}</h2>${ps.length?`<p class="cydates">${fd(cStart(cy))}–${fd(end)} · ${wk_} tyg.</p>`:''}${cy.goal||cy.goalDate?`<p class="cygoal">${esc(cy.goal||'Cel')}${cy.goalDate?`, ${fd(cy.goalDate)}${cy.goalDate>=T?` (za ${diff(T,cy.goalDate)} dni)`:''}`:''}</p>`:''}</div><div class="cyacts">${ps.length?`<button class="iconbtn" data-act="csvcyc" aria-label="Eksportuj cykl do CSV (Excel)" title="Eksport cyklu do Excela (CSV)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg></button>`:''}<button class="iconbtn" data-act="cycedit" aria-label="Edytuj nazwę i cel cyklu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14 6l4 4"/></svg></button></div></div>`;
+ if(ps.length)h+=`<div class="cytiles"><div><b>${css.length}</b><span>${plS(css.length)}</span></div><div><b>${crp.length?(sum(crp.map(x=>x.rpe))/crp.length).toFixed(1):'–'}</b><span>średnie RPE</span></div><div><b>${cLeft>0?cLeft:cLeft===0?'dziś':'✓'}</b><span>${cLeft>0?(cLeft==1?'dzień do końca':'dni do końca'):cLeft===0?'ostatni dzień':'zakończony'}</span></div></div>`;
  if(last&&end<T)h+=`<div class="card warn"><b>${isAct?'Cykl':'Ten cykl'} zakończył się ${fdw(end)}.</b><p class="mut">Możesz go wznowić: przedłuż ostatnią fazę (${esc(last.n)}) albo dodaj nową fazę od dziś.</p><label for="ext">Przedłuż fazę ${esc(last.n)} do</label><input id="ext" type="date" value="${add(T,13)}"><div class="btns"><button data-act="extend">Przedłuż fazę</button><button data-act="phtoday">Dodaj fazę od dziś</button></div></div>`;
  h+='<div class="tline">';
- ps.forEach((p,i)=>{if(i){const g=diff(ps[i-1].e,p.s)-1;h+=`<div class="tgap">${g>0?`przerwa ${g} ${g==1?'dzień':'dni'}`:''}</div>`}
-  const st=pstat(p),tw=Math.ceil((diff(p.s,p.e)+1)/7),now=T>=p.s&&T<=p.e,past=T>p.e,fut=T<p.s,prog=now?Math.round((diff(p.s,T)+1)/(diff(p.s,p.e)+1)*100):past?100:0;
-  const status=now?`Trwa, tydzień ${Math.floor(diff(p.s,T)/7)+1} z ${tw}`:past?'Zakończona':`Za ${diff(T,p.s)} dni`;
-  h+=`<button class="phcard${now?' now':''}${fut?' fut':''}" style="--pc:var(${p.c})" data-act="phedit" data-id="${p.id}" aria-label="Edytuj fazę ${esc(p.n)}"><span class="phtop"><span><b class="phname">${esc(p.n)}</b><span class="phdates">${fd(p.s)}–${fd(p.e)}, ${tw} tyg.</span></span><span class="phst">${status}</span></span>
-  <span class="phbar"><i style="width:${prog}%"></i></span>
-  ${fut?'':`<span class="phstats"><span><b>${st.n}</b> ${plS(st.n)}</span><span><b>${st.h.toFixed(1)}</b> h</span><span>RPE <b>${st.rpe?st.rpe.toFixed(1):'–'}</b></span>${st.top?`<span>głównie <b>${esc(st.top)}</b></span>`:''}</span>`}
-  <span class="phnote${p.note?'':' empty'}">${p.note?esc(p.note):past?'Dodaj wnioski po tej fazie':'Wnioski dopiszesz po zakończeniu fazy'}</span></button>`});
+ ps.forEach((p,i)=>{if(i){const g=diff(ps[i-1].e,p.s)-1;h+=`<div class="tgap">${g>0?`<span>przerwa ${g} ${g==1?'dzień':'dni'}</span>`:''}</div>`}
+  const st=pstat(p),tw=Math.ceil((diff(p.s,p.e)+1)/7),now=T>=p.s&&T<=p.e,past=T>p.e,fut=T<p.s,cw=now?Math.floor(diff(p.s,T)/7)+1:0;
+  const note=`<span class="phnote${p.note?'':' empty'}">${p.note?`<em>Wnioski</em>${esc(p.note)}`:past?'+ Dodaj wnioski po tej fazie':'Wnioski dopiszesz po zakończeniu fazy'}</span>`;
+  if(now)h+=`<button class="phcard now" style="--pc:var(${p.c})" data-act="phedit" data-id="${p.id}" aria-label="Edytuj fazę ${esc(p.n)}"><span class="phtop"><span><span class="phkick">Tydzień ${cw} z ${tw} · zostało ${diff(T,p.e)} dni</span><b class="phname">${esc(p.n)}</b><span class="phdates">${fd(p.s)}–${fd(p.e)}${st.top?` · głównie ${esc(st.top)}`:''}</span></span></span>
+   <span class="phseg">${[...Array(tw)].map((_,i)=>`<i class="${i<cw-1?'on':i==cw-1?'cur':''}"></i>`).join('')}</span>
+   <span class="phtiles"><span><b>${st.n}</b>${plS(st.n)}</span><span><b>${st.h.toFixed(1)}</b>godzin</span><span><b>${st.rpe?st.rpe.toFixed(1):'–'}</b>śr. RPE</span></span>${note}</button>`;
+  else if(past)h+=`<button class="phcard past" style="--pc:var(${p.c})" data-act="phedit" data-id="${p.id}" aria-label="Edytuj fazę ${esc(p.n)}"><span class="phtop"><span><b class="phname">${esc(p.n)}</b><span class="phdates">${fd(p.s)}–${fd(p.e)} · ${tw} tyg.</span></span><span class="phmini"><b>${st.n}</b> ${plS(st.n)} · RPE <b>${st.rpe?st.rpe.toFixed(1):'–'}</b>${st.top?`<br>głównie <b>${esc(st.top)}</b>`:''}</span></span>${note}</button>`;
+  else h+=`<button class="phcard fut" style="--pc:var(${p.c})" data-act="phedit" data-id="${p.id}" aria-label="Edytuj fazę ${esc(p.n)}"><span class="phtop"><span><b class="phname">${esc(p.n)}</b><span class="phdates">${fd(p.s)}–${fd(p.e)} · ${tw} tyg.</span></span><span class="phmini">za ${diff(T,p.s)} ${diff(T,p.s)==1?'dzień':'dni'}</span></span></button>`});
  h+=`<button class="phadd" data-act="phnew">+ Dodaj fazę</button></div>`;
  h+=`<details class="card arch"><summary><h2 style="margin:0;display:inline">Nowy cykl i archiwum</h2></summary><p class="mut" style="margin-top:10px">Nowy cykl przeniesie obecny do archiwum razem z wnioskami.</p><div class="btns"><button data-act="newcyc">Zacznij nowy cykl</button></div>
  ${others.length?`<h3 style="font:700 18px var(--disp);margin:18px 0 6px">Poprzednie cykle</h3>${others.map(o=>`<div class="h" style="margin:10px 0"><div><b>${esc(o.name)}</b><p class="mut">${o.phases.length?fd(cStart(o))+'–'+fd(cEnd(o))+', '+o.phases.length+' faz':'bez faz'}</p></div><div class="acts" style="flex-direction:row"><button data-act="editcyc" data-id="${o.id}">Pokaż</button><button data-act="setcyc" data-id="${o.id}">Wznów</button></div></div>`).join('')}`:''}</details>`;
