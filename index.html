@@ -415,7 +415,7 @@ input,select,textarea{font-size:max(16px,1em)}
 const CFG=window.DZIENNIK_CONFIG||{};
 const SUPABASE_URL=String(CFG.url||'').trim();
 const SUPABASE_KEY=String(CFG.key||'').trim();
-const APPVER='08.10 · 17:10';
+const APPVER='08.10 · 17:25';
 const LS='climb.sessions.v1',LSC='climb.cycles.v1';
 const COL=[['--c1','Zielony'],['--c2','Żółty'],['--c3','Czerwony'],['--c4','Fioletowy'],['--c5','Niebieski'],['--c6','Pomarańczowy'],['--c7','Turkusowy'],['--c8','Różowy']];
 const TY=['Capacity','Limit','Tindeq','Tension Board','Kilter Board','Technika','Skały','Inne'],BOARDS=['Tension Board','Kilter Board'];
@@ -537,7 +537,7 @@ function form(src,mode,pdate){const v=src||{},isPlan=mode.startsWith('plan');
  <div class="row" id="pmrow"><div><label for="place">Miejsce</label><div class="dd"><input id="place" placeholder="Wpisz albo wybierz z listy" autocomplete="off" spellcheck="false" value="${esc(v.place)}"><button type="button" class="ddchev" data-act="placeopen" aria-label="Pokaż miejsca" tabindex="-1"></button><div class="ddlist" id="placelist" hidden role="listbox"></div></div></div>${n('min',isPlan?'Planowany czas (min)':'Czas (min)',v.min,'int',3,999).replace('step="any"','step="any" placeholder="np. 90"')}</div></div>
  <div class="card" id="gd"${isPlan?' hidden':''}><h2>Green Day check</h2><p class="mut">Odpowiedz przed treningiem, a podpowiem, jak go dziś zrobić.</p>
  <label>Jak się czujesz? <span class="mut">1 świeży, 5 wyczerpany</span></label><div class="pills">${pills('before',[[1],[2],[3],[4],[5]])}</div>
- <label>Ból przed sesją</label><div class="pills">${pills('painB',[['Brak',0],['Lekki',1],['Wyraźny',2]])}</div>
+ <label>Ból przed sesją</label><div class="pills">${pills('painB',[['Brak',0],['Lekki',1],['Wyraźny',2]])}</div><div id="painBwrap"${v.painB>0?'':' hidden'}><label for="painBw">Gdzie boli? <span class="mut">np. palec serdeczny lewy, łokieć</span></label><input id="painBw" value="${esc(v.painBw)}" autocomplete="off" spellcheck="false"></div>
  <label>Skóra</label><div class="pills">${pills('skin',SK.map(x=>[x[1],x[0]]))}</div><div id="gdres"></div></div>
  <div class="card" id="feel"${isPlan?' hidden':''}><h2>Po sesji</h2>
  <label>Jak ciężko było? <span class="mut">Nie wiesz? Pomiń, policzę z Twoich poprzednich sesji.</span></label><div class="pills">${pills('rpe',RP)}</div>
@@ -582,7 +582,7 @@ function tsel(){const t=$('#type').value;document.querySelectorAll('#v-add [data
 function build(act){const g=i=>(($(i)||{}).value||'').trim(),num=i=>{const t=g(i).replace(',','.');return t===''||isNaN(+t)?null:+t};
  const rockT=$('#type').value=='Skały',min=rockT?null:num('#min');
  const type=$('#type').value,s={id:F.id||uid(),status:act,date:g('#date')||T,type,place:rockT?'':g('#place'),min,note:g('#note'),accs:rockT?[]:[...document.querySelectorAll('#acrows .acr')].map(r=>{const q=c=>r.querySelector(c).value.trim(),nn=c=>{const v=q(c).replace(',','.');return v===''||isNaN(+v)?null:+v};return{name:q('.ac-name'),sets:nn('.ac-sets'),reps:nn('.ac-reps'),kg:nn('.ac-kg')}}).filter(a=>a.name)};
- if(act=='done'){s.rpe=F.rpe;s.before=F.before;s.skin=F.skin;s.painB=F.painB;s.pain=g('#pain');const gd=gdCalc(F,s.date,s.id);if(gd)s.day=gd.c}
+ if(act=='done'){s.rpe=F.rpe;s.before=F.before;s.skin=F.skin;s.painB=F.painB;s.painBw=F.painB>0?g('#painBw'):'';s.pain=g('#pain');const gd=gdCalc(F,s.date,s.id);if(gd)s.day=gd.c}
  let newDr=[];if(DRF.includes(type)){const other=splitDr(g('#drill')),all=[...F.drills];other.forEach(x=>{if(!all.some(y=>y.toLowerCase()==x.toLowerCase()))all.push(x)});s.drill=all.join(', ');
   newDr=other.filter(x=>!C.drills.some(d=>d.name.toLowerCase()==x.toLowerCase()))}
  if(type=='Capacity')s.cap={...F.lv};
@@ -686,7 +686,7 @@ function summ(s){if(s.type=='Capacity'&&s.cap){const t=Object.entries(s.cap).fil
 function detail(s){let h='';const x=summ(s);if(x)h+=`<p class="mut">${x}</p>`;
  if(s.drill)h+=`<p class="mut">Drill: ${esc(s.drill)}</p>`;else if(s.status!='plan'&&DRQ.includes(s.type))h+='<p class="mut">Bez drilla</p>';
  if(s.accs&&s.accs.length)h+=`<p class="mut">Akcesoria: ${s.accs.map(accTxt).join('; ')}</p>`;else if(s.acc)h+=`<p class="mut">${esc(s.acc)}</p>`;if(s.skin&&s.skin>1)h+=`<p class="mut">Skóra: ${SK[s.skin-1][1].toLowerCase()}</p>`;
- if(s.pain)h+=`<p class="mut">Ból: ${esc(s.pain)}</p>`;if(s.note)h+=`<p class="mut note">${esc(s.note)}</p>`;return h}
+ if(s.painB>0)h+=`<p class="mut">Ból przed sesją: ${s.painB==2?'wyraźny':'lekki'}${s.painBw?', '+esc(s.painBw):''}</p>`;if(s.pain)h+=`<p class="mut">Ból po sesji: ${esc(s.pain)}</p>`;if(s.note)h+=`<p class="mut note">${esc(s.note)}</p>`;return h}
 
 /* ---------- plan ---------- */
 function prevNotes(){const cy=cyc(),ended=[...cy.phases].sort(bySD).filter(p=>p.e<T&&p.note);
@@ -880,7 +880,7 @@ const csvCell=v=>{if(v==null)return '';if(typeof v=='number')return String(v).re
 const fdy=s=>s?s.slice(8,10)+'.'+s.slice(5,7)+'.'+s.slice(0,4):'';
 function csvRows(cy,ps){const R=[['Data','Dzień','Faza','Typ','Miejsce','Czas (min)','RPE','Obciążenie (min×RPE)','Przejścia Capacity','Wynik','Drill','Akcesoria','Skóra','Ból','Notatka']];
  const ss=done().filter(x=>ps.some(p=>x.date>=p.s&&x.date<=p.e)).sort((a,b)=>a.date.localeCompare(b.date));
- ss.forEach(x=>{const p=ps.find(q=>x.date>=q.s&&x.date<=q.e);R.push([fdy(x.date),WD[D(x.date).getDay()],p?phLbl(p):'',x.type,x.place||'',x.min||null,x.rpe||null,x.min?ld(x):null,x.type=='Capacity'&&x.cap?capN(x):null,txt(summ(x)).replace(/^Razem \d+: /,''),x.drill||'',x.accs&&x.accs.length?txt(x.accs.map(accTxt).join('; ')):(x.acc||''),x.skin&&x.skin>1?SK[x.skin-1][1]:'',x.pain||'',x.note||''])});
+ ss.forEach(x=>{const p=ps.find(q=>x.date>=q.s&&x.date<=q.e);R.push([fdy(x.date),WD[D(x.date).getDay()],p?phLbl(p):'',x.type,x.place||'',x.min||null,x.rpe||null,x.min?ld(x):null,x.type=='Capacity'&&x.cap?capN(x):null,txt(summ(x)).replace(/^Razem \d+: /,''),x.drill||'',x.accs&&x.accs.length?txt(x.accs.map(accTxt).join('; ')):(x.acc||''),x.skin&&x.skin>1?SK[x.skin-1][1]:'',[x.painB>0?'przed: '+(x.painB==2?'wyraźny':'lekki')+(x.painBw?' ('+x.painBw+')':''):'',x.pain?'po: '+x.pain:''].filter(Boolean).join('; '),x.note||''])});
  R.push([]);R.push(['Podsumowanie faz']);R.push(['Faza','Od','Do','Tygodnie','Sesje','Godziny','Śr. RPE','Wnioski']);
  ps.forEach(p=>{const st=pstat(p);R.push([phLbl(p),fdy(p.s),fdy(p.e),Math.ceil((diff(p.s,p.e)+1)/7),st.n,+st.h.toFixed(1),st.rpe?+st.rpe.toFixed(1):null,p.note||''])});
  if(ps.length>1&&ps.length==cy.phases.length){const all=ss.filter(x=>x.rpe);R.push(['Cały cykl',fdy(cStart(cy)),fdy(cEnd(cy)),Math.ceil((diff(cStart(cy),cEnd(cy))+1)/7),ss.length,+(sum(ss.map(x=>x.min))/60).toFixed(1),all.length?+(sum(all.map(x=>x.rpe))/all.length).toFixed(1):null,''])}
@@ -963,7 +963,7 @@ function view(id){const s=byId(id);if(!s)return;const isP=s.status=='plan',GC={G
  else if(!isP&&DRQ.includes(s.type))h+=`<h3>Drille</h3><p class="mut">Bez drilla.</p>`;
  if(s.accs&&s.accs.length)h+=`<h3>Akcesoria</h3>`+s.accs.map(a=>`<div class="sh-row" style="grid-template-columns:1fr auto auto"><span>${esc(a.name)}</span><span class="mut">${a.sets?a.sets+(a.reps?' × '+a.reps:' serii'):a.reps?a.reps+' powt.':''}</span><b>${a.kg!=null?a.kg+' kg':''}</b></div>`).join('');else if(s.acc)h+=`<h3>Akcesoria</h3><p>${esc(s.acc)}</p>`;
  if(s.skin&&s.skin>1)h+=`<h3>Skóra</h3><p>${SK[s.skin-1][1]}</p>`;
- if(s.pain)h+=`<h3>Ból po sesji</h3><p>${esc(s.pain)}</p>`;
+ if(s.painB>0)h+=`<h3>Ból przed sesją</h3><p>${s.painB==2?'Wyraźny':'Lekki'}${s.painBw?', '+esc(s.painBw):''}</p>`;if(s.pain)h+=`<h3>Ból po sesji</h3><p>${esc(s.pain)}</p>`;
  if(s.note)h+=`<h3>Notatka</h3><p class="note">${esc(s.note)}</p>`;
  h+=`<div class="btns">${isP?`<button class="go" data-act="doplan" data-id="${s.id}">Zrobione</button><button data-act="editplan" data-id="${s.id}">Edytuj</button>`:`<button class="go" data-act="edit" data-id="${s.id}">Edytuj</button>`}<button data-act="del" data-id="${s.id}">Usuń</button></div>`;
  $('#sheetp').innerHTML=h;$('#sheet').hidden=false;document.body.style.overflow='hidden';$('#sheetp').scrollTop=0;setTimeout(()=>{const x=$('.sh-x');x&&x.focus()},30)}
@@ -991,7 +991,7 @@ document.addEventListener('click',e=>{const t=e.target;let b;
  if(b=t.closest('[data-setdate]')){$('#date').value=b.dataset.setdate;document.querySelectorAll('[data-setdate]').forEach(x=>x.setAttribute('aria-pressed',x===b));gdUpdate();saveDraft();return}
  if(b=t.closest('[data-ftype]')){const v=b.dataset.ftype,i=HF.types.indexOf(v);i<0?HF.types.push(v):HF.types.splice(i,1);saveHF();hFilters();hList();return}
  if(b=t.closest('[data-drill]')){const n=b.dataset.drill,i=F.drills.findIndex(x=>x.toLowerCase()==n.toLowerCase());i<0?F.drills.push(n):F.drills.splice(i,1);b.setAttribute('aria-pressed',i<0);return}
- if(b=t.closest('.pill[data-g]')){const g=b.dataset.g,v=+b.dataset.v;F[g]=F[g]==v?null:v;b.parentNode.querySelectorAll('.pill').forEach(x=>x.setAttribute('aria-pressed',F[g]==+x.dataset.v));gdUpdate();return}
+ if(b=t.closest('.pill[data-g]')){const g=b.dataset.g,v=+b.dataset.v;F[g]=F[g]==v?null:v;b.parentNode.querySelectorAll('.pill').forEach(x=>x.setAttribute('aria-pressed',F[g]==+x.dataset.v));if(g=='painB'&&$('#painBwrap')){$('#painBwrap').hidden=!(F.painB>0);if(F.painB>0&&!$('#painBw').value)setTimeout(()=>$('#painBw').focus(),30)}gdUpdate();return}
  if(b=t.closest('[data-lv]')){const l=b.dataset.lv;F.lv[l]=Math.max(0,(F.lv[l]||0)+ +b.dataset.d);const el=$('#lv'+l);el.value=F.lv[l];el.classList.toggle('on',F.lv[l]>0);$('#captot').textContent=sum(Object.values(F.lv));return}
  b=t.closest('[data-act]');if(!b)return;const a=b.dataset.act,id=b.dataset.id;
  if(a=='view'){view(id);return}
