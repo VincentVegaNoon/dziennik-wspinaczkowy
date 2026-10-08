@@ -396,6 +396,7 @@ input[type=date]{-webkit-min-logical-width:0!important;min-inline-size:0!importa
 html,body{touch-action:manipulation}
 button,a,label,input,select,textarea,.pill,.wchip,[data-act]{touch-action:manipulation}
 input,select,textarea{font-size:max(16px,1em)}
+.wow{margin:2px 0 10px;font-size:14px;color:var(--mut)}.wow b{color:var(--ink);font:700 18px var(--disp)}.wow.up b{color:var(--accent)}
 </style>
 </head>
 <body class="loggedout">
@@ -414,7 +415,7 @@ input,select,textarea{font-size:max(16px,1em)}
 const CFG=window.DZIENNIK_CONFIG||{};
 const SUPABASE_URL=String(CFG.url||'').trim();
 const SUPABASE_KEY=String(CFG.key||'').trim();
-const APPVER='06.10 · 23:50';
+const APPVER='08.10 · 16:50';
 const LS='climb.sessions.v1',LSC='climb.cycles.v1';
 const COL=[['--c1','Zielony'],['--c2','Żółty'],['--c3','Czerwony'],['--c4','Fioletowy'],['--c5','Niebieski'],['--c6','Pomarańczowy'],['--c7','Turkusowy'],['--c8','Różowy']];
 const TY=['Capacity','Limit','Tindeq','Tension Board','Kilter Board','Technika','Skały','Inne'],BOARDS=['Tension Board','Kilter Board'];
@@ -559,7 +560,7 @@ function gdCalc(f,date,id){if(f.before==null&&f.painB==null&&f.skin==null)return
  const prev=done().filter(x=>x.id!=id&&x.before!=null&&x.date<=date).sort((a,b)=>b.date.localeCompare(a.date)||b.id.localeCompare(a.id))[0],r=[],y=[];
  if(f.before>=4)r.push('wysokie zmęczenie');if(f.painB==2)r.push('wyraźny ból');if(f.skin==3)r.push('zdarta skóra');
  if(f.before==3)y.push('średnie zmęczenie');if(f.painB==1)y.push('lekki ból');if(f.skin==2)y.push('cienka skóra');
- const rule=f.before>=2&&prev&&prev.before>=2;if(rule)y.push('Before ≥2 drugi raz z rzędu');
+ const rule=f.before>=2&&prev&&prev.before>=2;if(rule)y.push('drugi raz z rzędu zaczynasz zmęczony (2+)');
  return r.length?{c:'R',why:r}:y.length?{c:'Y',why:y,rule}:{c:'G',why:[]}}
 const GDT={G:['Green','--c1','Zrób sesję zgodnie z planem. Dobry dzień to nie powód, żeby dokładać.'],Y:['Yellow','--c2','Zmniejsz objętość i nie rób prób na maxa.'],R:['Red','--c3','Dziś bez ciężkiego treningu: technika na łatwych boulderach, mobilność albo odpoczynek.']};
 function gdUpdate(){const el=$('#gdres');if(!el)return;const g=gdCalc(F,($('#date')||{}).value||T,F.id);
@@ -751,14 +752,14 @@ let PRG='cur';
 function prow(s,mid,right){return `<div class="prow" role="button" tabindex="0" data-act="view" data-id="${s.id}"><span class="prd">${fdw(s.date)}</span><span class="prm">${mid}</span><span class="prr">${right}</span></div>`}
 function prog(){const dn=done();let h='';
  const bs=dn.filter(x=>x.before!=null).sort((a,b)=>b.date.localeCompare(a.date)||b.id.localeCompare(a.id)).slice(0,2);
- if(bs.length==2&&bs.every(x=>x.before>=2))h+='<div class="card warn"><b>Before ≥2 dwa razy z rzędu.</b> Następną sesję zrób według parametrów z poprzedniego tygodnia.</div>';
+ if(bs.length==2&&bs.every(x=>x.before>=2))h+='<div class="card warn"><b>Dwie ostatnie sesje zaczynałeś zmęczony</b> (2 lub więcej w skali 1–5). Następną zrób według parametrów z poprzedniego tygodnia, bez dokładania.</div>';
  if(!dn.length){$('#v-prog').innerHTML=h+'<div class="card"><p>Tu pojawią się wykresy po pierwszej zapisanej sesji.</p><p class="mut">Obciążenie, RPE i postęp w typach sesji, które robisz w danej fazie.</p></div>';return}
  const cy=cyc(),ps=[...cy.phases].sort(bySD),cp=phOf(T,cy);
  let P=PRG=='cycle'?null:PRG=='cur'?cp:ps.find(q=>q.id==PRG);if(PRG!='cycle'&&!P){PRG=cp?'cur':'cycle';P=cp}
  const r0=P?P.s:(cStart(cy)||done().reduce((m,x)=>x.date<m?x.date:m,T)),r1=[P?P.e:(cEnd(cy)||T),T].sort()[0],ss=dn.filter(x=>x.date>=r0&&x.date<=r1),title=P?phLbl(P):cy.name;
  h+=`<div class="prgchips chips">${cp?`<button class="pill" data-act="prg" data-v="cur" aria-pressed="${PRG=='cur'}">Obecna faza</button>`:''}${ps.filter(q=>!q.dl&&(!cp||q.id!=cp.id)).filter(q=>q.s<=T).map(q=>`<button class="pill" data-act="prg" data-v="${q.id}" aria-pressed="${PRG==q.id}">${esc(q.dl?phLbl(q):q.n)}</button>`).join('')}<button class="pill" data-act="prg" data-v="cycle" aria-pressed="${PRG=='cycle'}">Cały cykl</button></div>`;
  const bf=ss.filter(x=>x.before!=null),cl=ss.filter(x=>DRQ.includes(x.type)),sk=ss.filter(x=>x.skin==3).length;
- h+=`<div class="card"><h2>${esc(title)}<span class="mut" style="font:400 15px var(--body)"> ${fd(r0)}–${fd(r1)}</span></h2><div class="tiles"><div><b>${ss.length}</b><span>${plS(ss.length)}</span></div><div><b>${(sum(ss.map(x=>x.min))/60).toFixed(1)}</b><span>godzin</span></div><div><b>${bf.length?(sum(bf.map(x=>x.before))/bf.length).toFixed(1):'–'}</b><span>średnie Before</span></div><div><b>${cl.length?Math.round(cl.filter(x=>x.drill).length/cl.length*100)+'%':'–'}</b><span>sesji z drillem</span></div></div>${sk?`<p class="mut">Zdarta skóra: ${sk} ${sk==1?'raz':'razy'} w tym okresie.</p>`:''}</div>`;
+ h+=`<div class="card"><h2>${esc(title)}<span class="mut" style="font:400 15px var(--body)"> ${fd(r0)}–${fd(r1)}</span></h2><div class="tiles"><div><b>${ss.length}</b><span>${cap1(plS(ss.length))}</span></div><div><b>${(sum(ss.map(x=>x.min))/60).toFixed(1)}</b><span>Godzin</span></div><div><b>${bf.length?(sum(bf.map(x=>x.before))/bf.length).toFixed(1):'–'}</b><span>Zmęczenie przed</span></div><div><b>${cl.length?Math.round(cl.filter(x=>x.drill).length/cl.length*100)+'%':'–'}</b><span>Sesji z drillem</span></div></div>${sk?`<p class="mut">Zdarta skóra: ${sk} ${sk==1?'raz':'razy'} w tym okresie.</p>`:''}</div>`;
  /* weeks of the period, at least 6, at most 12 */
  let w1=wk(r1),w0=wk(r0);let nW=Math.min(12,Math.max(6,diff(w0,w1)/7+1));const ws=[...Array(nW)].map((_,i)=>add(w1,-7*(nW-1-i))),by=ws.map(w=>dn.filter(x=>wk(x.date)==w)),lab=ws.map(fd);
  const col=ws.map(w=>{const p=phAny(add(w,3)),cur=phOf(T);return p&&p.dl?'rgba(255,255,255,.16)':p&&cur&&p.id==cur.id?'var(--accent)':p?'rgba(255,255,255,.55)':'rgba(255,255,255,.25)'});
@@ -767,7 +768,9 @@ function prog(){const dn=done();let h='';
   const cur=phOf(T),dl=cur&&(cur.dl||/deload|roztren|odpocz|przerw/i.test(cur.n));
   const zone=r==null?(A.days<35?`Za mało danych: potrzeba co najmniej 5 tygodni zapisanych treningów (masz ${A.days} ${A.days==1?'dzień':'dni'}).`:`Za mało regularnych wpisów: w 4 tygodniach przed ostatnim tygodniem treningi są zapisane tylko w ${A.cov}, a potrzeba co najmniej 3. Inaczej wynik byłby sztucznie zawyżony. Wróci, gdy zapiszesz treningi z kolejnych tygodni.`):r<.8?(dl?'Poniżej 0,8: lżej niż zwykle, zgodnie z deloadem.':'Poniżej 0,8: lżej niż zwykle. Normalne przy deloadzie, po przerwie albo przy chorobie.'):r<=1.3?'0,8–1,3: strefa optymalna.':r<=1.5?'1,3–1,5: obciążenie rośnie szybko, uważaj.':'Powyżej 1,5: duży skok obciążenia, ryzyko przeciążenia.';
   acwr=`<div class="big">${r==null?'ACWR –':'ACWR '+r.toFixed(2).replace('.',',')}</div><p class="mut">${zone}</p>${r!=null&&A.pts.filter(x=>x!=null).length>1?acwrChart(A.pts,A.lab):''}${r!=null?`<p class="mut">Ostatnie 7 dni w porównaniu z 4 tygodniami wcześniej. Nowsze dni ważą więcej. Sesje bez czasu liczę szacunkowo (skały wg długości dnia, Tindeq 20 min).${A.gaps?` Brak wpisów w ${A.gaps} z 4 ostatnich tygodni: jeśli wtedy trenowałeś, wynik może być zawyżony.`:''}</p>`:''}`}
- h+=`<div class="card"><h2>Obciążenie tygodniowe</h2>${bars(by.map(a=>sum(a.map(ld))),lab,col,'Obciążenie tygodniowe',av)}<p class="mut">${av?'Procent Twojego średniego tygodnia (przerywana linia). Obciążenie to czas sesji razy RPE.':'Czas × RPE. Gdy zbierze się więcej tygodni, słupki pokażą procent Twojej średniej.'} Czerwone słupki to obecna faza${ws.some(w=>{const p=phAny(add(w,3));return p&&p.dl})?', ciemne to deload':''}.</p>${acwr}</div>`;
+ const L7=k=>sum(dn.filter(x=>{const d=diff(x.date,T);return d>=k*7&&d<k*7+7}).map(ld)),w0l=L7(0),w1l=L7(1),wd=w1l?Math.round((w0l/w1l-1)*100):null;
+ const wow=r1!=T?'':wd==null?(w0l?'<p class="wow">Ostatnie 7 dni: brak treningów w 7 dniach wcześniej, nie ma z czym porównać.</p>':''):`<p class="wow${wd>20?' up':''}"><b>${wd>0?'+':''}${wd}%</b> obciążenia w ostatnich 7 dniach względem 7 dni wcześniej.${wd>20?' To duży skok, w kolejnym tygodniu lepiej nie dokładać.':wd<-30?' Wyraźnie lżej, np. deload albo przerwa.':''}</p>`;
+ h+=`<div class="card"><h2>Obciążenie tygodniowe</h2>${wow}${bars(by.map(a=>sum(a.map(ld))),lab,col,'Obciążenie tygodniowe',av)}<p class="mut">${av?'Procent Twojego średniego tygodnia (przerywana linia). Obciążenie to czas sesji razy RPE.':'Czas × RPE. Gdy zbierze się więcej tygodni, słupki pokażą procent Twojej średniej.'} Czerwone słupki to obecna faza${ws.some(w=>{const p=phAny(add(w,3));return p&&p.dl})?', ciemne to deload':''}.</p>${acwr}</div>`;
  const rv=by.map(a=>{const r=a.filter(x=>x.rpe);return r.length?sum(r.map(x=>x.rpe))/r.length:null}),rs=ss.filter(x=>x.rpe);
  if(rv.some(x=>x!=null))h+=`<div class="card"><h2>Trend RPE</h2>${rpeChart(rv,lab)}<p class="mut">Średnie RPE w tygodniu z ocenionych sesji.${rs.length?` W tym okresie średnio ${(sum(rs.map(x=>x.rpe))/rs.length).toFixed(1)}.`:''}</p></div>`;
  /* ---- per type, only what was done in the period ---- */
@@ -940,7 +943,7 @@ function accView(){
 function view(id){const s=byId(id);if(!s)return;const isP=s.status=='plan',GC={G:'--c1',Y:'--c2',R:'--c3'};
  const g=!isP?gdCalc({before:s.before,painB:s.painB,skin:s.skin},s.date,s.id):null,day=s.day||(g&&g.c),lv=!isP?lvlOf(s):null;
  let h=`<div class="sh-top"><div><p class="mut">${WDL[D(s.date).getDay()]}, ${fd(s.date)}${isP?' (plan)':''}</p><h2>${esc(s.type)}${s.place&&s.place!=s.type?`<span class="mut" style="font-weight:600">, ${esc(s.place)}</span>`:''}</h2></div><button class="sh-x" data-act="close" aria-label="Zamknij"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>`;
- if(day&&!isP)h+=`<div class="ph" style="box-shadow:inset 5px 0 0 var(${GC[day]})"><b><span class="dot" style="background:var(${GC[day]})"></span>${GDT[day][0]}</b>${g&&g.why.length?` <span class="mut">(${g.why.join(', ')})</span>`:''}${s.before!=null?`<p class="mut">Before ${s.before}/5</p>`:''}</div>`;
+ if(day&&!isP)h+=`<div class="ph" style="box-shadow:inset 5px 0 0 var(${GC[day]})"><b><span class="dot" style="background:var(${GC[day]})"></span>${GDT[day][0]}</b>${g&&g.why.length?` <span class="mut">(${g.why.join(', ')})</span>`:''}${s.before!=null?`<p class="mut">Zmęczenie przed sesją ${s.before}/5</p>`:''}</div>`;
  const rt=!isP?relType(s):null,tiles=[[s.min?hm(s.min):s.type=='Skały'?'cały dzień':'–','czas'],[isP?'–':s.rpe?s.rpe:'~'+eff(s),isP?'RPE':s.rpe?'RPE, '+lv[0].replace(' sesja','').toLowerCase():'RPE szacowane'],[rt?rt+'%':'–',rt?`obciążenia typowej sesji ${esc(s.type)}`:'za mało sesji tego typu do porównania']];
  h+=`<div class="tiles sh-tiles">${tiles.map(t=>`<div><b>${t[0]}</b><span>${t[1]}</span></div>`).join('')}</div>`;
  if(s.cap&&capN(s)){const mx=Math.max(...Object.values(s.cap));h+=`<h3>Przejścia</h3>`+Object.entries(s.cap).filter(e=>e[1]).map(([l,n])=>`<div class="sh-bar"><span class="lvl" style="--hc:${HCOL[l-1]};color:${HTXT[l-1]}">${l}</span><i style="width:${n/mx*100}%;background:${HCOL[l-1]}"></i><b>${n}</b></div>`).join('')+`<div class="sh-sum"><span>Razem</span><b>${capN(s)}</b></div>`}
@@ -966,7 +969,7 @@ function closeSheet(){$('#sheet').hidden=true;document.body.style.overflow=''}
 /* ---------- navigation & events ---------- */
 function homeView(){const el=$('#v-home');if(!el)return;const dn=done().sort((a,b)=>b.date.localeCompare(a.date)||b.id.localeCompare(a.id)),last=dn[0];let h='';
  h+=hasDraft()?`<button class="cta" data-act="newses"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>Dokończ sesję</button><div class="draftnote"><span>Masz niezapisaną sesję. Wpisane dane są bezpieczne.</span><button class="sm" data-act="dropdraft">Odrzuć</button></div>`:`<button class="cta" data-act="newses"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Zapisz sesję</button>`;
- const bs=dn.filter(x=>x.before!=null).slice(0,2);if(bs.length==2&&bs.every(x=>x.before>=2))h+='<div class="card warn"><b>Before ≥2 dwa razy z rzędu.</b> Następną sesję zrób według parametrów z poprzedniego tygodnia.</div>';
+ const bs=dn.filter(x=>x.before!=null).slice(0,2);if(bs.length==2&&bs.every(x=>x.before>=2))h+='<div class="card warn"><b>Dwie ostatnie sesje zaczynałeś zmęczony</b> (2 lub więcej w skali 1–5). Następną zrób według parametrów z poprzedniego tygodnia, bez dokładania.</div>';
  const w0=wk(T),days=[...Array(7)].map((_,i)=>add(w0,i)),wd=dn.filter(x=>x.date>=w0&&x.date<=days[6]),GC={G:'var(--c1)',Y:'var(--c2)',R:'var(--c3)'};
  h+=`<button class="card hweek" data-tab="plan"><span class="hwtop"><b>Ten tydzień</b><span class="mut">${wd.length} ${plS(wd.length)}${wd.length?', '+hm(sum(wd.map(x=>x.min))):''}</span></span><span class="hwdays">${days.map(d=>{const ss=wd.filter(x=>x.date==d),c=ss.find(x=>x.day);return `<span class="hwd${d==T?' today':''}${d>T?' fut':''}"><small>${WD[D(d).getDay()]}</small><i style="${ss.length?`background:${c?GC[c.day]:'var(--accent)'};border-color:transparent`:''}">${ss.length>1?ss.length:''}</i></span>`}).join('')}</span></button>`;
  if(last){const ago=diff(last.date,T),lv=lvlOf(last),x=summ(last);
