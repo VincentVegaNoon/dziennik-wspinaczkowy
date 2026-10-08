@@ -415,7 +415,7 @@ input,select,textarea{font-size:max(16px,1em)}
 const CFG=window.DZIENNIK_CONFIG||{};
 const SUPABASE_URL=String(CFG.url||'').trim();
 const SUPABASE_KEY=String(CFG.key||'').trim();
-const APPVER='08.10 · 16:50';
+const APPVER='08.10 · 17:10';
 const LS='climb.sessions.v1',LSC='climb.cycles.v1';
 const COL=[['--c1','Zielony'],['--c2','Żółty'],['--c3','Czerwony'],['--c4','Fioletowy'],['--c5','Niebieski'],['--c6','Pomarańczowy'],['--c7','Turkusowy'],['--c8','Różowy']];
 const TY=['Capacity','Limit','Tindeq','Tension Board','Kilter Board','Technika','Skały','Inne'],BOARDS=['Tension Board','Kilter Board'];
@@ -720,11 +720,14 @@ function avgWeek(before){const ws=[...Array(8)].map((_,i)=>add(before,-7*(i+1)))
 function bars(v,l,col,unit,avg){const W=320,H=130,bw=W/v.length,mx=Math.max(...v,avg||0,1);let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${unit}">`;
  v.forEach((x,i)=>{const h=(H-44)*x/mx,cx=i*bw+bw/2;s+=`<rect x="${i*bw+5}" y="${H-20-h}" width="${bw-10}" height="${Math.max(h,0)}" rx="4" style="fill:${col[i]}"/>${v.length<=8||(v.length-1-i)%2==0?`<text x="${cx}" y="${H-6}" text-anchor="middle">${l[i]}</text>`:''}`+(x?`<text class="v" x="${cx}" y="${H-24-h}" text-anchor="middle">${avg?Math.round(x/avg*100)+'%':Math.round(x)}</text>`:'')});
  if(avg){const y=H-20-(H-44)*avg/mx;s+=`<line x1="2" x2="${W-2}" y1="${y}" y2="${y}" style="stroke:var(--ink);stroke-width:1.2;opacity:.55" stroke-dasharray="4 4"/>`}return s+'</svg>'}
-function lines(sr,l){const W=320,H=130,v=sr.flat().filter(x=>x!=null);if(!v.length)return '<p class="mut">Brak pomiarów dla tego chwytu w ostatnich 8 tygodniach.</p>';
- let lo=Math.min(...v),hi=Math.max(...v);if(hi==lo){hi++;lo--}const X=i=>20+i*(W-40)/7,Y=x=>H-26-(H-46)*(x-lo)/(hi-lo);let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Siła palców">`;
- sr.forEach((a,k)=>{const c=k?'var(--c4)':'var(--ink)';let d='';a.forEach((x,i)=>{if(x!=null)d+=(d?'L':'M')+X(i)+' '+Y(x)});s+=`<path d="${d}" style="stroke:${c};fill:none;stroke-width:2"/>`;a.forEach((x,i)=>{if(x!=null)s+=`<circle cx="${X(i)}" cy="${Y(x)}" r="4" style="fill:var(--p);stroke:${c};stroke-width:2"/>`})});
- l.forEach((t,i)=>s+=`<text x="${X(i)}" y="${H-8}" text-anchor="middle">${t}</text>`);
- return s+`</svg><p class="mut">Najlepszy wynik w tygodniu: lewa (ciemna linia), prawa (fioletowa). Zakres ${lo} do ${hi} kg.</p>`}
+function lines(sr,l){const W=320,H=150,n=l.length,v=sr.flat().filter(x=>x!=null);if(!v.length)return '<p class="mut">Brak pomiarów dla tego chwytu w tym okresie.</p>';
+ const mn=Math.min(...v),mxv=Math.max(...v),st=mxv-mn>20?10:5;let lo=Math.floor(mn*0.9/st)*st,hi=Math.ceil(mxv*1.05/st)*st;if(hi-lo<2*st)hi=lo+2*st;
+ const X=i=>34+i*(W-50)/Math.max(1,n-1),Y=x=>H-26-(H-44)*(x-lo)/(hi-lo),C=['var(--ink)','var(--c4)'];let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Siła palców">`;
+ for(let g=lo;g<=hi+0.001;g+=st)s+=`<line x1="30" x2="${W-6}" y1="${Y(g)}" y2="${Y(g)}" style="stroke:var(--ln);stroke-width:1" stroke-dasharray="3 4"/><text x="2" y="${Y(g)+3}">${g}</text>`;
+ sr.forEach((a,k)=>{let d='';a.forEach((x,i)=>{if(x!=null)d+=(d&&a[i-1]!=null?'L':'M')+X(i).toFixed(1)+' '+Y(x).toFixed(1)});s+=`<path d="${d}" style="stroke:${C[k]};fill:none;stroke-width:2"/>`});
+ sr.forEach((a,k)=>a.forEach((x,i)=>{if(x==null)return;const o=sr[1-k]&&sr[1-k][i],up=o==null||x>=o;s+=`<circle cx="${X(i)}" cy="${Y(x)}" r="4" style="fill:var(--p);stroke:${C[k]};stroke-width:2"/><text class="v" x="${X(i)}" y="${up?Y(x)-8:Y(x)+15}" text-anchor="middle" style="fill:${C[k]}">${+x.toFixed(1)}</text>`}));
+ l.forEach((t,i)=>{if(n<=8||(n-1-i)%2==0)s+=`<text x="${X(i)}" y="${H-6}" text-anchor="middle">${t}</text>`});
+ return s+`</svg><p class="mut"><b style="color:var(--ink)">●</b> lewa · <b style="color:var(--c4)">●</b> prawa. Najlepszy wynik w tygodniu, kg.${sr.every(a=>a.filter(x=>x!=null).length<=1)?' Na razie jeden tydzień z pomiarem, linia pojawi się po kolejnym.':''}</p>`}
 
 /* ACWR: ostre = średnia z 7 dni, przewlekłe = EWMA 28 dni, przewlekłe liczone do dnia sprzed ostatniego tygodnia, więc tydzień ostry nie wchodzi do średniej */
 function acwrCalc(){const dn=done(),L={};dn.forEach(x=>L[x.date]=(L[x.date]||0)+ld(x));const st=dn.reduce((m,x)=>!m||x.date<m?x.date:m,'');
