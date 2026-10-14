@@ -417,7 +417,7 @@ input,select,textarea{font-size:max(16px,1em)}
 const CFG=window.DZIENNIK_CONFIG||{};
 const SUPABASE_URL=String(CFG.url||'').trim();
 const SUPABASE_KEY=String(CFG.key||'').trim();
-const APPVER='08.10 · 20:05';
+const APPVER='14.10 · 12:30';
 const LS='climb.sessions.v1',LSC='climb.cycles.v1';
 const COL=[['--c1','Zielony'],['--c2','Żółty'],['--c3','Czerwony'],['--c4','Fioletowy'],['--c5','Niebieski'],['--c6','Pomarańczowy'],['--c7','Turkusowy'],['--c8','Różowy']];
 const TY=['Capacity','Limit','Tindeq','Tension Board','Kilter Board','Technika','Skały','Inne'],BOARDS=['Tension Board','Kilter Board'];
@@ -862,7 +862,7 @@ function cycleView(){const cy=ecy(),isAct=cy.id==C.active,ps=[...cy.phases].sort
  if(isAct&&pn.length&&cStart(cy)>cEnd(prev))h+=notesCard({t:'Wnioski z cyklu '+prev.name,ps:pn});
  const wk_=ps.length?Math.ceil((diff(cStart(cy),end)+1)/7):0;
  const css=ps.length?done().filter(x=>x.date>=cStart(cy)&&x.date<=end):[],crp=css.filter(x=>x.rpe);
- h+=`<div class="cyhead"><div><p class="cylbl">${isAct?'Aktywny cykl':'Cykl z archiwum'}</p><h2>${esc(cy.name)}</h2>${ps.length?`<p class="cydates">${fd(cStart(cy))}–${fd(end)} · ${wk_} tyg.</p>`:''}${cy.goal||cy.goalDate?`<p class="cygoal">${esc(cy.goal||'Cel')}${cy.goalDate?`, ${fd(cy.goalDate)}${cy.goalDate>=T?` (za ${diff(T,cy.goalDate)} dni)`:''}`:''}</p>`:''}</div><div class="cyacts">${ps.length?`<button class="iconbtn" data-act="csvcyc" aria-label="Eksportuj cykl do CSV (Excel)" title="Eksport cyklu do Excela (CSV)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg></button>`:''}<button class="iconbtn" data-act="cycedit" aria-label="Edytuj nazwę i cel cyklu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14 6l4 4"/></svg></button></div></div>`;
+ h+=`<div class="cyhead"><div><p class="cylbl">${isAct?'Aktywny cykl':'Cykl z archiwum'}</p><h2>${esc(cy.name)}</h2>${ps.length?`<p class="cydates">${fd(cStart(cy))}–${fd(end)} · ${wk_} tyg.</p>`:''}${cy.goal||cy.goalDate?`<p class="cygoal">${esc(cy.goal||'Cel')}${cy.goalDate?`, ${fd(cy.goalDate)}${cy.goalDate>=T?` (za ${diff(T,cy.goalDate)} dni)`:''}`:''}</p>`:''}</div><div class="cyacts">${ps.length?`<button class="iconbtn" data-act="csvcyc" aria-label="Eksportuj cykl do Excela" title="Eksport cyklu do Excela"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg></button>`:''}<button class="iconbtn" data-act="cycedit" aria-label="Edytuj nazwę i cel cyklu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14 6l4 4"/></svg></button></div></div>`;
  if(ps.length)h+=`<div class="cytiles"><div><b>${css.length}</b><span>${cap1(plS(css.length))}</span></div><div><b>${crp.length?(sum(crp.map(x=>x.rpe))/crp.length).toFixed(1):'–'}</b><span>Średnie RPE</span></div></div>`;
  if(last&&end<T)h+=`<div class="card warn"><b>${isAct?'Cykl':'Ten cykl'} zakończył się ${fdw(end)}.</b><p class="mut">Możesz go wznowić: przedłuż ostatnią fazę (${esc(last.n)}) albo dodaj nową fazę od dziś.</p><label for="ext">Przedłuż fazę ${esc(last.n)} do</label><input id="ext" type="date" value="${add(T,13)}"><div class="btns"><button data-act="extend">Przedłuż fazę</button><button data-act="phtoday">Dodaj fazę od dziś</button></div></div>`;
  h+='<div class="tline">';
@@ -884,16 +884,32 @@ function cycleView(){const cy=ecy(),isAct=cy.id==C.active,ps=[...cy.phases].sort
 const txt=h=>{const d=document.createElement('div');d.innerHTML=h;return d.textContent.trim()};
 const csvCell=v=>{if(v==null)return '';if(typeof v=='number')return String(v).replace('.',',');v=String(v);return /[;"\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};
 const fdy=s=>s?s.slice(8,10)+'.'+s.slice(5,7)+'.'+s.slice(0,4):'';
-function csvRows(cy,ps){const R=[['Data','Dzień','Faza','Typ','Miejsce','Czas (min)','RPE','Obciążenie (min×RPE)','Przejścia Capacity','Wynik','Drill','Akcesoria','Skóra','Ból','Notatka']];
- const ss=done().filter(x=>ps.some(p=>x.date>=p.s&&x.date<=p.e)).sort((a,b)=>a.date.localeCompare(b.date));
- ss.forEach(x=>{const p=ps.find(q=>x.date>=q.s&&x.date<=q.e);R.push([fdy(x.date),WD[D(x.date).getDay()],p?phLbl(p):'',x.type,x.place||'',x.min||null,x.rpe||null,x.min?ld(x):null,x.type=='Capacity'&&x.cap?capN(x):null,txt(summ(x)).replace(/^Razem \d+: /,''),x.drill||'',x.accs&&x.accs.length?txt(x.accs.map(accTxt).join('; ')):(x.acc||''),x.skin&&x.skin>1?SK[x.skin-1][1]:'',[x.painB>0?'przed: '+(x.painB==2?'wyraźny':'lekki')+(x.painBw?' ('+x.painBw+')':''):'',x.pain?'po: '+x.pain:''].filter(Boolean).join('; '),x.note||''])});
- R.push([]);R.push(['Podsumowanie faz']);R.push(['Faza','Od','Do','Tygodnie','Sesje','Godziny','Śr. RPE','Wnioski']);
- ps.forEach(p=>{const st=pstat(p);R.push([phLbl(p),fdy(p.s),fdy(p.e),Math.ceil((diff(p.s,p.e)+1)/7),st.n,+st.h.toFixed(1),st.rpe?+st.rpe.toFixed(1):null,p.note||''])});
- if(ps.length>1&&ps.length==cy.phases.length){const all=ss.filter(x=>x.rpe);R.push(['Cały cykl',fdy(cStart(cy)),fdy(cEnd(cy)),Math.ceil((diff(cStart(cy),cEnd(cy))+1)/7),ss.length,+(sum(ss.map(x=>x.min))/60).toFixed(1),all.length?+(sum(all.map(x=>x.rpe))/all.length).toFixed(1):null,''])}
- return R}
-function csvDownload(name,R){const body='\uFEFF'+R.map(r=>r.map(csvCell).join(';')).join('\r\n');
- const fn=(name||'eksport').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ł/g,'l').replace(/Ł/g,'L').replace(/[^\w-]+/g,'-').replace(/^-+|-+$/g,'')+'.csv';
- const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([body],{type:'text/csv;charset=utf-8'}));a.download=fn;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000);toast('Pobrano '+fn)}
+/* dane eksportu: wspólne dla Excela (.xlsx) i zapasowego CSV */
+const EXH=[['Data',11],['Dzień',6],['Faza',22],['Typ',14],['Miejsce',14],['Czas (min)',9],['RPE',6],['Obciążenie',11],['Przejścia Capacity',10],['Wynik',42,1],['Drill',22,1],['Akcesoria',32,1],['Skóra',9],['Ból',28,1],['Notatka',55,1]];
+const EXS=[['Faza',24],['Od',11],['Do',11],['Tygodnie',9],['Sesje',8],['Godziny',9],['Śr. RPE',8],['Wnioski',90,1]];
+function expData(cy,ps){const ss=done().filter(x=>ps.some(p=>x.date>=p.s&&x.date<=p.e)).sort((a,b)=>a.date.localeCompare(b.date));
+ const rows=ss.map(x=>{const p=ps.find(q=>x.date>=q.s&&x.date<=q.e);return [x.date,WD[D(x.date).getDay()],p?phLbl(p):'',x.type,x.place||'',x.min||null,x.rpe||null,x.min||x.type=='Skały'||x.type=='Tindeq'?Math.round(ld(x)):null,x.type=='Capacity'&&x.cap?capN(x):null,txt(summ(x)).replace(/^Razem \d+: /,''),x.drill||'',x.accs&&x.accs.length?txt(x.accs.map(accTxt).join('; ')):(x.acc||''),x.skin&&x.skin>1?SK[x.skin-1][1]:'',[x.painB>0?'przed: '+(x.painB==2?'wyraźny':'lekki')+(x.painBw?' ('+x.painBw+')':''):'',x.pain?'po: '+x.pain:''].filter(Boolean).join('; '),x.note||'']});
+ const sum_=ps.map(p=>{const st=pstat(p);return [phLbl(p),p.s,p.e,Math.ceil((diff(p.s,p.e)+1)/7),st.n,+st.h.toFixed(1),st.rpe?+st.rpe.toFixed(1):null,p.note||'']});
+ let tot=null;if(ps.length>1&&ps.length==cy.phases.length){const all=ss.filter(x=>x.rpe);tot=['Cały cykl',cStart(cy),cEnd(cy),Math.ceil((diff(cStart(cy),cEnd(cy))+1)/7),ss.length,+(sum(ss.map(x=>x.min))/60).toFixed(1),all.length?+(sum(all.map(x=>x.rpe))/all.length).toFixed(1):null,'']}
+ return {rows,sum:sum_,tot}}
+const isoD=v=>typeof v=='string'&&/^\d{4}-\d{2}-\d{2}$/.test(v);
+const fnSafe=n=>(n||'eksport').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/ł/g,'l').replace(/Ł/g,'L').replace(/[^\w-]+/g,'-').replace(/^-+|-+$/g,'');
+function dlBlob(blob,fn){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fn;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500);toast('Pobrano '+fn)}
+function csvDownload(name,X){const R=[EXH.map(h=>h[0]),...X.rows.map(r=>r.map(v=>isoD(v)?fdy(v):v)),[],['Podsumowanie faz'],EXS.map(h=>h[0]),...X.sum.map(r=>r.map(v=>isoD(v)?fdy(v):v)),...(X.tot?[X.tot.map(v=>isoD(v)?fdy(v):v)]:[])];
+ dlBlob(new Blob(['﻿'+R.map(r=>r.map(csvCell).join(';')).join('\r\n')],{type:'text/csv;charset=utf-8'}),fnSafe(name)+'.csv')}
+function loadXL(){return window.ExcelJS?Promise.resolve():new Promise((res,rej)=>{const sc=document.createElement('script');sc.src='https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js';sc.onload=res;sc.onerror=rej;document.head.appendChild(sc)})}
+async function xlsxDownload(name,X){toast('Przygotowuję plik Excel…');
+ try{await loadXL()}catch(e){toast('Nie udało się wczytać Excela, pobieram CSV.');csvDownload(name,X);return}
+ const wb=new ExcelJS.Workbook();wb.creator='Dziennik wspinaczkowy';
+ const sheet=(title,H,rows,boldLast)=>{const ws=wb.addWorksheet(title,{views:[{state:'frozen',ySplit:1}]});
+  ws.columns=H.map(h=>({header:h[0],width:h[1]}));
+  rows.forEach(r=>ws.addRow(r.map(v=>isoD(v)?new Date(Date.UTC(+v.slice(0,4),+v.slice(5,7)-1,+v.slice(8,10))):v)));
+  const hr=ws.getRow(1);hr.font={bold:true,color:{argb:'FFFFFFFF'}};hr.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF1C1C1F'}};hr.alignment={vertical:'middle',wrapText:true};hr.height=30;
+  ws.eachRow((row,i)=>{if(i==1)return;row.eachCell({includeEmpty:true},(c,j)=>{const h=H[j-1];if(!h)return;c.alignment={vertical:'top',wrapText:!!h[2]};if(c.value instanceof Date)c.numFmt='dd.mm.yyyy';else if(typeof c.value=='number'&&!Number.isInteger(c.value))c.numFmt='0.0'});if(i%2==0)row.eachCell({includeEmpty:true},(c,j)=>{if(j<=H.length)c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFF4F4F5'}}})});
+  if(boldLast&&rows.length)ws.getRow(rows.length+1).font={bold:true};
+  ws.autoFilter={from:{row:1,column:1},to:{row:1,column:H.length}};return ws};
+ sheet('Sesje',EXH,X.rows);sheet('Fazy',EXS,X.tot?[...X.sum,X.tot]:X.sum,!!X.tot);
+ const buf=await wb.xlsx.writeBuffer();dlBlob(new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),fnSafe(name)+'.xlsx')}
 function openSheet(html){const sh=$('#sheet');if(sh.parentNode!==document.body)document.body.appendChild(sh);$('#sheetp').innerHTML=html;$('#sheet').hidden=false;document.body.style.overflow='hidden';$('#sheetp').scrollTop=0}
 const XBTN='<button class="sh-x" data-act="close" aria-label="Zamknij"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>';
 function phSheet(p,isNew){openSheet(`<div class="sh-top"><div><p class="mut">${esc(ecy().name)}</p><h2>${isNew?'Nowa faza':esc(p.n)}</h2></div>${XBTN}</div>
@@ -1059,8 +1075,8 @@ document.addEventListener('click',e=>{const t=e.target;let b;
  else if(a=='setcyc'){C.active=id;cedit=null;cdirty=false;Cd=null;putC(1);toast('Cykl wznowiony')}
  else if(a=='editcyc'){cedit=id;cycleView();window.scrollTo(0,0)}
  else if(a=='cycedit')cySheet();
- else if(a=='csvcyc'){const cy=ecy(),ps=[...cy.phases].sort(bySD);if(ps.length)csvDownload('dziennik-'+cy.name,csvRows(cy,ps))}
- else if(a=='csvph'){const cy=ecy(),p=cy.phases.find(q=>q.id==id);if(p)csvDownload('dziennik-'+cy.name+'-'+p.n,csvRows(cy,[p]))}
+ else if(a=='csvcyc'){const cy=ecy(),ps=[...cy.phases].sort(bySD);if(ps.length)xlsxDownload('dziennik-'+cy.name,expData(cy,ps))}
+ else if(a=='csvph'){const cy=ecy(),p=cy.phases.find(q=>q.id==id);if(p)xlsxDownload('dziennik-'+cy.name+'-'+phLbl(p),expData(cy,[p]))}
  else if(a=='cysave'){const cy=ecy();cy.name=$('#cy-name').value.trim()||'Cykl';cy.goal=$('#cy-goal').value.trim();cy.goalDate=$('#cy-gdate').value;closeSheet();putC(1);toast('Zapisano cykl')}
  else if(a=='dlnew'){const cy=ecy(),p=cy.phases.find(q=>q.id==id);if(!p)return;const nx=[...cy.phases].sort(bySD).find(q=>q.s>p.e);let s0,e0;
   if(!nx||diff(p.e,nx.s)>1){s0=add(p.e,1);e0=add(s0,6);if(nx&&e0>=nx.s)e0=add(nx.s,-1)}else{e0=p.e;s0=add(p.e,-6);if(s0<=p.s)s0=add(p.s,1)}
