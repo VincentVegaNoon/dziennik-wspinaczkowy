@@ -435,6 +435,9 @@ input,select,textarea{font-size:max(16px,1em)}
 .hm-grid .hp-svg{max-width:190px}
 .hp-top{margin:10px 0 6px;padding-left:22px;display:flex;flex-direction:column;gap:4px}
 @media (prefers-reduced-motion:reduce){.hz{transition:none}}
+.vgrow{gap:8px!important;margin-top:8px!important}
+.vgrow .vg{display:inline-flex;align-items:baseline;gap:6px;height:auto;min-width:0;padding:7px 12px;border-radius:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);color:var(--ink);font:700 20px/1 var(--disp)}
+.vgrow .vg small{margin:0!important;opacity:1!important;color:var(--accent);font:700 14px/1 var(--body);font-variant-numeric:tabular-nums}
 </style>
 </head>
 <body class="loggedout">
@@ -453,7 +456,7 @@ input,select,textarea{font-size:max(16px,1em)}
 const CFG=window.DZIENNIK_CONFIG||{};
 const SUPABASE_URL=String(CFG.url||'').trim();
 const SUPABASE_KEY=String(CFG.key||'').trim();
-const APPVER='15.10 · 17:30';
+const APPVER='15.10 · 17:40';
 const LS='climb.sessions.v1',LSC='climb.cycles.v1';
 const COL=[['--c1','Zielony'],['--c2','Żółty'],['--c3','Czerwony'],['--c4','Fioletowy'],['--c5','Niebieski'],['--c6','Pomarańczowy'],['--c7','Turkusowy'],['--c8','Różowy']];
 const TY=['Capacity','Limit','Tindeq','Tension Board','Kilter Board','Technika','Skały','Inne'],BOARDS=['Tension Board','Kilter Board'];
