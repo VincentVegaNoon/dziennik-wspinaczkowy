@@ -165,11 +165,11 @@ details.arch summary{cursor:pointer;list-style:none;display:flex;align-items:cen
 .tcard{background:linear-gradient(110deg,color-mix(in srgb,var(--tc) 16%,var(--p)) 0%,var(--p) 55%)}
 .pill[data-g]{--pk:var(--accent);--hc:color-mix(in srgb,var(--pk) 24%,var(--p))}
 .pill[data-g][aria-pressed=true]{--hc:var(--pk);color:#2A1814;box-shadow:0 0 0 3px color-mix(in srgb,var(--pk) 35%,transparent),inset 0 -3px 0 rgba(0,0,0,.18)}
-.pill[data-g=before][data-v="1"],.pill[data-g=painB][data-v="0"],.pill[data-g=skin][data-v="1"],.pill[data-g=rpe][data-v="5"]{--pk:var(--c1)}
+.pill[data-g=before][data-v="1"],.pill[data-g=painB][data-v="0"],.pill[data-g=painA][data-v="0"],.pill[data-g=skin][data-v="1"],.pill[data-g=rpe][data-v="5"]{--pk:var(--c1)}
 .pill[data-g=before][data-v="2"]{--pk:var(--c7)}
-.pill[data-g=before][data-v="3"],.pill[data-g=painB][data-v="1"],.pill[data-g=skin][data-v="2"],.pill[data-g=rpe][data-v="7"]{--pk:var(--c2)}
+.pill[data-g=before][data-v="3"],.pill[data-g=painB][data-v="1"],.pill[data-g=painA][data-v="1"],.pill[data-g=skin][data-v="2"],.pill[data-g=rpe][data-v="7"]{--pk:var(--c2)}
 .pill[data-g=before][data-v="4"],.pill[data-g=rpe][data-v="8"]{--pk:var(--c6)}
-.pill[data-g=before][data-v="5"],.pill[data-g=painB][data-v="2"],.pill[data-g=skin][data-v="3"],.pill[data-g=rpe][data-v="9"]{--pk:var(--c3)}
+.pill[data-g=before][data-v="5"],.pill[data-g=painB][data-v="2"],.pill[data-g=painA][data-v="2"],.pill[data-g=skin][data-v="3"],.pill[data-g=rpe][data-v="9"]{--pk:var(--c3)}
 .chips .pill[data-drill]{--hc:color-mix(in srgb,var(--c7) 22%,var(--p))}.chips .pill[data-drill][aria-pressed=true]{--hc:var(--c7);color:#2A1814}
 .wrow{background:color-mix(in srgb,var(--soft) 70%,transparent)}
 .wrow.has{background:linear-gradient(100deg,color-mix(in srgb,var(--tc) 26%,var(--p)),color-mix(in srgb,var(--tc) 8%,var(--p)))}
@@ -399,6 +399,42 @@ input,select,textarea{font-size:max(16px,1em)}
 .wow{margin:2px 0 10px;font-size:14px;color:var(--mut)}.wow b{color:var(--ink);font:700 18px var(--disp)}.wow.up b{color:var(--accent)}
 .accb{display:inline-flex;align-items:center;gap:2px;margin-left:6px;padding:1px 6px 1px 4px;border-radius:99px;background:rgba(255,255,255,.1);color:var(--ink);font:600 12px var(--body);vertical-align:middle;line-height:1.4}.accb svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2.4;stroke-linecap:round}
 .accb+.accb{margin-left:4px}
+
+/* ---- mapa bólu ---- */
+.hp{display:flex;flex-direction:column;gap:10px;margin:2px 0 12px}
+.hp-tg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.hp-seg{display:flex;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:3px;gap:3px}
+.hp-seg button{flex:1;min-width:0;min-height:38px;padding:0 6px;border:0!important;border-radius:6px!important;background:transparent!important;color:var(--ink);font:600 14px var(--body);display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.hp-seg button[aria-pressed=true]{background:#F3F3F3!important;color:#111}
+.hp-n{min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--accent);color:#140707;font:700 11px/18px var(--body);text-align:center}
+.hp-n:empty{display:none}
+.hp-svg{width:100%;max-width:320px;height:auto;display:block;margin:0 auto;-webkit-tap-highlight-color:transparent;overflow:visible}
+.hz{fill:#2B2B30;stroke:rgba(0,0,0,.55);stroke-width:1;transition:fill .12s}
+.hz.jt{fill:#222226}
+.hp .hz{cursor:pointer}
+@media (hover:hover){.hp .hz:hover{fill:#3A3A41}}
+.hz.sel,.hz.jt.sel{fill:var(--accent);stroke:#C93434}
+.hz:focus{outline:none}.hz:focus-visible{stroke:#fff;stroke-width:2}
+.hp-ol{fill:none;stroke:rgba(255,255,255,.3);stroke-width:1.5;pointer-events:none}
+.hp-cr{stroke:rgba(255,255,255,.14);stroke-width:1;pointer-events:none}
+.hp-nl{fill:rgba(255,255,255,.03);stroke:rgba(255,255,255,.26);stroke-width:1.2;pointer-events:none}
+.hp-or{margin:-4px 0 0;font-size:13px;color:var(--mut);text-align:center}
+.hp-ro{margin:0;padding:9px 12px;border-radius:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);font-size:14px;color:var(--mut)}
+.hp-ro b{color:var(--ink);font-weight:600}.hp-pul{color:var(--accent);font-weight:600}
+.hp-x{display:flex;flex-wrap:wrap;gap:6px}
+.hp-x button{min-height:38px;padding:6px 12px;border-radius:8px!important;border:1px solid rgba(255,255,255,.14)!important;background:rgba(255,255,255,.06)!important;color:var(--ink);font:500 14px var(--body)}
+.hp-x button[aria-pressed=true]{background:var(--accent)!important;border-color:var(--accent)!important;color:#140707;font-weight:600}
+.hp-sel{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.hp-sel:empty{display:none}
+.hp-sel li{display:flex;align-items:center;gap:8px;padding:6px 6px 6px 12px;border-radius:10px;background:rgba(255,77,77,.10);border:1px solid rgba(255,77,77,.35);font-size:14px}
+.hp-sel li span{flex:1;min-width:0;overflow-wrap:anywhere}.hp-sel li em{font-style:normal;color:var(--accent);font-weight:600}
+.hp-sel button{flex:0 0 auto;width:34px;height:34px;min-height:34px;padding:0;border-radius:8px!important;border:1px solid rgba(255,255,255,.14)!important;background:rgba(0,0,0,.25)!important;color:var(--ink);font:600 18px/1 var(--body)}
+.hm-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.hm-grid figure{margin:0;display:flex;flex-direction:column;align-items:center;gap:4px}
+.hm-grid figcaption{font-size:13px;color:var(--mut)}
+.hm-grid .hp-svg{max-width:190px}
+.hp-top{margin:10px 0 6px;padding-left:22px;display:flex;flex-direction:column;gap:4px}
+@media (prefers-reduced-motion:reduce){.hz{transition:none}}
 </style>
 </head>
 <body class="loggedout">
@@ -417,7 +453,7 @@ input,select,textarea{font-size:max(16px,1em)}
 const CFG=window.DZIENNIK_CONFIG||{};
 const SUPABASE_URL=String(CFG.url||'').trim();
 const SUPABASE_KEY=String(CFG.key||'').trim();
-const APPVER='14.10 · 12:30';
+const APPVER='15.10 · 17:30';
 const LS='climb.sessions.v1',LSC='climb.cycles.v1';
 const COL=[['--c1','Zielony'],['--c2','Żółty'],['--c3','Czerwony'],['--c4','Fioletowy'],['--c5','Niebieski'],['--c6','Pomarańczowy'],['--c7','Turkusowy'],['--c8','Różowy']];
 const TY=['Capacity','Limit','Tindeq','Tension Board','Kilter Board','Technika','Skały','Inne'],BOARDS=['Tension Board','Kilter Board'];
@@ -509,6 +545,68 @@ function head(){const cy=cyc(),ps=[...cy.phases].sort(bySD),p=phOf(T,cy);let h='
  h=`<div class="hero"><div class="stxt"><div class="brand"><i></i>${esc(cy.name)}<button class="sm logout" data-act="logout" title="${esc(USER?USER.email:'')}">Wyloguj</button></div>${h}</div><div class="hbody">${rb}</div></div>`;
  $('#head').innerHTML=h}
 
+/* ---------- mapa bólu: rysunek dłoni podzielony na strefy (wybór w formularzu, mapa w Postępie) ---------- */
+const HPF=[{id:'f5',cx:56,w:36,L:118,r:-9,sx:[24,77]},{id:'f4',cx:99,w:40,L:156,r:-3,sx:[77,122]},{id:'f3',cx:145,w:42,L:170,r:1,sx:[122,168]},{id:'f2',cx:190,w:40,L:152,r:6,sx:[168,240]}];
+const HFN={f1:'kciuk',f2:'wskazujący',f3:'środkowy',f4:'serdeczny',f5:'mały'};
+const HSW={p3:'opuszek',dip:'staw przy opuszku (DIP)',p2:'paliczek środkowy',pip:'staw środkowy (PIP)',p1:'paliczek bliższy',mcp:'nasada palca'},HSG={...HSW,p3:'paliczek dalszy',mcp:'knykieć'};
+const HPUL={mcp:'A1',p1:'A2',pip:'A3',p2:'A4',dip:'A5'};
+const HTW={p2:'opuszek',ip:'staw (IP)',p1:'paliczek bliższy',mcp:'nasada kciuka'},HTG={...HTW,p2:'paliczek dalszy',mcp:'knykieć kciuka'};
+const HAW={palm:'środek dłoni',thenar:'kłąb kciuka',hypo:'kłąb małego palca','wr-r':'nadgarstek, strona kciuka','wr-c':'nadgarstek, środek','wr-u':'nadgarstek, strona małego palca',fa:'przedramię (zginacze)'};
+const HAG={...HAW,palm:'grzbiet dłoni, środek',thenar:'grzbiet, u nasady kciuka',hypo:'grzbiet, strona małego palca',fa:'przedramię (prostowniki)'};
+const HXT={'el-in':'łokieć, strona wewnętrzna','el-out':'łokieć, strona zewnętrzna',sh:'bark'},HXB={'el-in':'Łokieć wewn.','el-out':'Łokieć zewn.',sh:'Bark'};
+const HPALM='M38,200 H222 Q229,200 229,208 L230,290 C230,318 222,342 204,352 L72,352 C52,352 36,340 34,318 L30,240 Q30,206 38,200 Z',HWR='M56,352 H204 L197,402 H63 Z';
+function hzParts(key){const [h,s,z]=String(key).split('|'),hand=h=='L'?'Lewa':'Prawa';
+ if(s=='x')return {full:[hand,HXT[z]||z],pul:'',short:`${h} ${HXT[z]||z}`};
+ const side=s=='w'?'wnętrze':'grzbiet',g2=s=='g'?' (grzbiet)':'';
+ if(/^f[2-5]\./.test(z)){const [f,g]=z.split('.'),seg=(s=='w'?HSW:HSG)[g]||g;return {full:[hand,side,HFN[f],seg],pul:s=='w'?HPUL[g]||'':'',short:`${h} ${HFN[f]}, ${seg}${g2}`}}
+ if(z&&z.startsWith('t.')){const g=z.slice(2),seg=(s=='w'?HTW:HTG)[g]||g;return {full:[hand,side,'kciuk',seg],pul:s=='w'&&g=='mcp'?'A1':'',short:`${h} kciuk, ${seg}${g2}`}}
+ const a=(s=='w'?HAW:HAG)[z]||z;return {full:[hand,side,a],pul:'',short:`${h} ${a}${s=='g'&&!/^(grzbiet|przedramię)/.test(a)?' (grzbiet)':''}`}}
+/* o: {pid, hand:'L'|'P', side:'w'|'g', sel:Set (wybór) albo heat:Map + max (mapa)} */
+function handSVG(o){const P=o.pid,mir=(o.hand=='L')===(o.side=='w');
+ const zone=(tag,attrs,z,cls,dup)=>{const k=`${o.hand}|${o.side}|${z}`,p=hzParts(k),lab=esc(p.full.slice(2).join(', '));
+  if(o.heat){const n=o.heat.get(k)||0,f=n?`fill:rgba(255,77,77,${(.3+.7*n/o.max).toFixed(2)})`:z=='fa'?`fill:url(#${P}-faG)`:'';return `<${tag} class="hz${cls?' '+cls:''}" data-z="${z}" ${attrs}${f?` style="${f}"`:''}>${dup?'':`<title>${lab}${n?': '+n:''}</title>`}</${tag}>`}
+  const on=o.sel.has(k),f=z=='fa'?` style="fill:url(#${P}-${on?'faS':'faG'})"`:'';
+  return `<${tag} class="hz${cls?' '+cls:''}${on?' sel':''}" data-z="${z}" ${attrs}${f}${dup?'':` tabindex="0" role="button" aria-pressed="${on}" aria-label="${lab}${p.pul?' (bloczek '+p.pul+')':''}"`}/>`};
+ const finger=f=>{const {w,L}=f,j=7,b1=-.44*L,b2=-.74*L,x=-w/2,segs=[['p3',-L,L+b2-j],['dip',b2-j,2*j],['p2',b2+j,(b1-j)-(b2+j)],['pip',b1-j,2*j],['p1',b1+j,14-(b1+j)]];
+  let r=`<g transform="translate(${f.cx} 200) rotate(${f.r})"><clipPath id="${P}-c${f.id}"><rect x="${x}" y="${-L}" width="${w}" height="${L+14}" rx="${w/2}"/></clipPath><g clip-path="url(#${P}-c${f.id})">`;
+  segs.forEach(([q,y,h])=>r+=zone('rect',`x="${x}" y="${y.toFixed(1)}" width="${w}" height="${h.toFixed(1)}"`,`${f.id}.${q}`,q=='dip'||q=='pip'?'jt':''));
+  [b1,b2].forEach(b=>r+=`<line class="hp-cr" x1="${x+7}" x2="${-x-7}" y1="${b.toFixed(1)}" y2="${b.toFixed(1)}"/>`);
+  if(o.side=='g')r+=`<rect class="hp-nl" x="${(-w*.27).toFixed(1)}" y="${-L+5}" width="${(w*.54).toFixed(1)}" height="${Math.min((L+b2-j)*.62,24).toFixed(1)}" rx="7"/>`;
+  return r+`</g><rect class="hp-ol" x="${x}" y="${-L}" width="${w}" height="${L+14}" rx="${w/2}"/></g>`};
+ let t=`<g transform="translate(236 296) rotate(36)"><clipPath id="${P}-cth"><rect x="-21" y="-126" width="42" height="172" rx="21"/></clipPath><g clip-path="url(#${P}-cth)">`;
+ [['t.p2',-126,48,''],['t.ip',-78,14,'jt'],['t.p1',-64,48,''],['t.mcp',-16,16,'jt']].forEach(([z,y,h,c])=>t+=zone('rect',`x="-21" y="${y}" width="42" height="${h}"`,z,c));
+ t+=zone('rect','x="-21" y="0" width="42" height="46"','thenar','',1)+'<line class="hp-cr" x1="-14" x2="14" y1="-71" y2="-71"/>';
+ if(o.side=='g')t+='<rect class="hp-nl" x="-11" y="-121" width="22" height="24" rx="8"/>';
+ t+='</g><rect class="hp-ol" x="-21" y="-126" width="42" height="172" rx="21"/></g>';
+ let m=`<clipPath id="${P}-cp"><path d="${HPALM}"/></clipPath><g clip-path="url(#${P}-cp)">`+zone('rect','x="24" y="218" width="212" height="140"','palm')+zone('path','d="M230,226 C192,246 166,292 158,356 L240,356 L240,226 Z"','thenar')+zone('path','d="M24,244 C58,248 84,276 90,356 L24,356 Z"','hypo');
+ HPF.forEach(f=>m+=zone('rect',`x="${f.sx[0]}" y="200" width="${f.sx[1]-f.sx[0]}" height="18"`,`${f.id}.mcp`,'jt'));
+ m+=`</g><path class="hp-ol" d="${HPALM}"/><clipPath id="${P}-cw"><path d="${HWR}"/></clipPath><g clip-path="url(#${P}-cw)">`;
+ [['wr-u',40,66],['wr-c',106,48],['wr-r',154,66]].forEach(([z,x,w])=>m+=zone('rect',`x="${x}" y="352" width="${w}" height="50"`,z));
+ m+=`</g><path class="hp-ol" d="${HWR}"/>`+zone('path','d="M63,402 H197 L201,456 H59 Z"','fa');
+ return `<defs><linearGradient id="${P}-faG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2B2B30"/><stop offset="1" stop-color="#2B2B30" stop-opacity="0"/></linearGradient><linearGradient id="${P}-faS" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FF4D4D"/><stop offset="1" stop-color="#FF4D4D" stop-opacity=".15"/></linearGradient></defs><g${mir?' transform="translate(340 0) scale(-1 1)"':''}>${t}${HPF.map(finger).join('')}${m}</g>`}
+const HP={};
+function hpHTML(pid,keys){const ks=(keys||[]).filter(Boolean),first=ks.find(k=>!k.includes('|x|'))||ks[0];
+ HP[pid]={hand:first?first[0]:'P',side:first&&first.split('|')[1]=='g'?'g':'w',sel:new Set(ks)};
+ return `<div class="hp" data-hp="${pid}"><div class="hp-tg"><div class="hp-seg" role="group" aria-label="Ręka"><button type="button" data-hph="L">Lewa <span class="hp-n"></span></button><button type="button" data-hph="P">Prawa <span class="hp-n"></span></button></div><div class="hp-seg" role="group" aria-label="Strona dłoni"><button type="button" data-hps="w">Wnętrze <span class="hp-n"></span></button><button type="button" data-hps="g">Grzbiet <span class="hp-n"></span></button></div></div><svg class="hp-svg" viewBox="0 0 340 460" role="group" aria-label="Rysunek dłoni podzielony na strefy"></svg><p class="hp-or"></p><p class="hp-ro" aria-live="polite">Stuknij miejsce, w którym boli. Możesz zaznaczyć kilka.</p><div class="hp-x">${Object.keys(HXT).map(k=>`<button type="button" data-hpx="${k}" aria-pressed="false">${HXB[k]}</button>`).join('')}</div><ul class="hp-sel"></ul></div>`}
+function hpRender(pid){const st=HP[pid],root=document.querySelector(`.hp[data-hp="${pid}"]`);if(!st||!root)return;const ks=[...st.sel];
+ root.querySelector('.hp-svg').innerHTML=handSVG({pid:'hp'+pid,hand:st.hand,side:st.side,sel:st.sel});
+ root.querySelector('.hp-or').textContent=st.side=='w'?`Wnętrze ${st.hand=='L'?'lewej':'prawej'} dłoni, tak jak patrzysz na swoją dłoń.`:`Grzbiet ${st.hand=='L'?'lewej':'prawej'} dłoni, widok z góry.`;
+ root.querySelectorAll('[data-hph]').forEach(b=>{const h=b.dataset.hph,n=ks.filter(k=>k.startsWith(h+'|')).length;b.setAttribute('aria-pressed',st.hand==h);b.querySelector('.hp-n').textContent=n&&h!=st.hand?n:''});
+ root.querySelectorAll('[data-hps]').forEach(b=>{const q=b.dataset.hps,n=ks.filter(k=>k.startsWith(st.hand+'|'+q+'|')).length;b.setAttribute('aria-pressed',st.side==q);b.querySelector('.hp-n').textContent=n&&q!=st.side?n:''});
+ root.querySelectorAll('[data-hpx]').forEach(b=>b.setAttribute('aria-pressed',st.sel.has(`${st.hand}|x|${b.dataset.hpx}`)));
+ root.querySelector('.hp-sel').innerHTML=ks.map(k=>{const p=hzParts(k);return `<li><span>${esc(p.full.join(' · '))}${p.pul?` <em>· okolice ${p.pul}</em>`:''}</span><button type="button" data-hpdel="${esc(k)}" aria-label="Usuń: ${esc(p.full.join(', '))}">×</button></li>`}).join('')}
+function hpSay(root,k,verb){const p=hzParts(k);root.querySelector('.hp-ro').innerHTML=`${verb}: <b>${esc(p.full.join(' · '))}</b>${p.pul?` <span class="hp-pul">· okolice bloczka ${p.pul}</span>`:''}`}
+function hpToggle(root,k){const st=HP[root.dataset.hp];if(st.sel.has(k)){st.sel.delete(k);hpSay(root,k,'Odznaczono')}else{st.sel.add(k);hpSay(root,k,'Zaznaczono')}hpRender(root.dataset.hp);if(F&&F.mode)saveDraft()}
+document.addEventListener('click',e=>{const root=e.target.closest&&e.target.closest('.hp');if(!root)return;const st=HP[root.dataset.hp];if(!st)return;let b;
+ if(b=e.target.closest('[data-z]')){hpToggle(root,`${st.hand}|${st.side}|${b.dataset.z}`);return}
+ if(b=e.target.closest('[data-hph]')){st.hand=b.dataset.hph;hpRender(root.dataset.hp);return}
+ if(b=e.target.closest('[data-hps]')){st.side=b.dataset.hps;hpRender(root.dataset.hp);return}
+ if(b=e.target.closest('[data-hpx]')){hpToggle(root,`${st.hand}|x|${b.dataset.hpx}`);return}
+ if(b=e.target.closest('[data-hpdel]')){st.sel.delete(b.dataset.hpdel);root.querySelector('.hp-ro').textContent='Usunięto z listy.';hpRender(root.dataset.hp);if(F&&F.mode)saveDraft()}});
+document.addEventListener('keydown',e=>{if(e.key!='Enter'&&e.key!==' ')return;const t=e.target.closest&&e.target.closest('.hp [data-z]');if(!t)return;e.preventDefault();const root=t.closest('.hp'),z=t.dataset.z,st=HP[root.dataset.hp];hpToggle(root,`${st.hand}|${st.side}|${z}`);const n=root.querySelector(`[data-z="${z}"][tabindex]`);if(n)n.focus()});
+/* opis bólu: stopień · miejsca · dopisek */
+const painLine=(sev,zs,note,cap,sep)=>[sev==2?(cap?'Wyraźny':'wyraźny'):sev==1?(cap?'Lekki':'lekki'):'',(zs||[]).map(k=>hzParts(k).short).join('; '),note||''].filter(Boolean).join(sep||' · ');
+
 /* ---------- session form ---------- */
 function limRow(r={}){return `<div class="lr"><input type="text" inputmode="numeric" data-n="int" maxlength="1" data-max="9" data-min="1" aria-label="Poziom" placeholder="Poziom" value="${r.lv??''}"><input type="text" inputmode="numeric" data-n="int" maxlength="3" data-max="999" aria-label="Próby" placeholder="Próby" value="${r.tries??''}"><label class="chk"><input type="checkbox" ${r.top?'checked':''}>Top</label><button type="button" data-act="rmrow" aria-label="Usuń boulder">×</button></div>`}
 function lastScale(){for(const x of done().sort((a,b)=>b.date.localeCompare(a.date)))if(x.rock&&x.rock.routes&&x.rock.routes.length)return x.rock.routes[x.rock.routes.length-1].sc||'pl';return 'pl'}
@@ -520,7 +618,7 @@ function lastAcc(name){const n=name.toLowerCase();for(const x of done().sort((a,
 function tbRow(r={}){return `<div class="tbr"><div class="rtop"><input aria-label="Nazwa bouldera" placeholder="Nazwa" value="${esc(r.name)}"><button type="button" class="rmb" data-act="rmtb" aria-label="Usuń boulder"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>Usuń</button></div><select aria-label="Wycena">${VG.map((v,i)=>`<option value="${i}"${r.g==i||(r.g==null&&i==3)?' selected':''}>${v} (${VF[i]})</option>`).join('')}</select><input type="text" inputmode="numeric" data-n="int" maxlength="3" data-max="999" data-min="1" aria-label="Próby" placeholder="Próby" value="${r.tries??''}"><label class="chk"><input type="checkbox"${r.top!==false?' checked':''}>Top</label></div>`}
 function form(src,mode,pdate){const v=src||{},isPlan=mode.startsWith('plan');
  const vd=splitDr(v.drill),libN=C.drills.map(d=>d.name.toLowerCase());
- F={rlen:v.rlen??2,mode,id:(mode=='new'||mode=='archive'||mode=='plan-new')?null:v.id,rpe:v.rpe??null,before:v.before??null,skin:v.skin??null,painB:v.painB??null,lv:{1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0,9:0,...(v.cap||{})},drills:vd.filter(x=>libN.includes(x.toLowerCase()))};
+ F={rlen:v.rlen??2,mode,id:(mode=='new'||mode=='archive'||mode=='plan-new')?null:v.id,rpe:v.rpe??null,before:v.before??null,skin:v.skin??null,painB:v.painB??null,painA:v.painA??null,lv:{1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0,9:0,...(v.cap||{})},drills:vd.filter(x=>libN.includes(x.toLowerCase()))};
  const otherDr=vd.filter(x=>!libN.includes(x.toLowerCase())).join(', ');
  const minD='';let date=v.date||pdate||(mode=='archive'?add(minD0(),-1):T);if(date>T)date=T;if(minD&&date<minD)date=minD;F.minD=minD;
  const ti=v.tind||{},pw=v.pw||{},grips=[...new Set(done().map(s=>s.tind&&s.tind.grip).filter(Boolean))];
@@ -539,11 +637,11 @@ function form(src,mode,pdate){const v=src||{},isPlan=mode.startsWith('plan');
  <div class="row" id="pmrow"><div><label for="place">Miejsce</label><div class="dd"><input id="place" placeholder="Wpisz albo wybierz z listy" autocomplete="off" spellcheck="false" value="${esc(v.place)}"><button type="button" class="ddchev" data-act="placeopen" aria-label="Pokaż miejsca" tabindex="-1"></button><div class="ddlist" id="placelist" hidden role="listbox"></div></div></div>${n('min',isPlan?'Planowany czas (min)':'Czas (min)',v.min,'int',3,999).replace('step="any"','step="any" placeholder="np. 90"')}</div></div>
  <div class="card" id="gd"${isPlan?' hidden':''}><h2>Green Day check</h2><p class="mut">Odpowiedz przed treningiem, a podpowiem, jak go dziś zrobić.</p>
  <label>Jak się czujesz? <span class="mut">1 świeży, 5 wyczerpany</span></label><div class="pills">${pills('before',[[1],[2],[3],[4],[5]])}</div>
- <label>Ból przed sesją</label><div class="pills">${pills('painB',[['Brak',0],['Lekki',1],['Wyraźny',2]])}</div><div id="painBwrap"${v.painB>0?'':' hidden'}><label for="painBw">Gdzie boli? <span class="mut">np. palec serdeczny lewy, łokieć</span></label><input id="painBw" value="${esc(v.painBw)}" autocomplete="off" spellcheck="false"></div>
+ <label>Ból przed sesją</label><div class="pills">${pills('painB',[['Brak',0],['Lekki',1],['Wyraźny',2]])}</div><div id="painBwrap"${v.painB>0?'':' hidden'}><label>Gdzie boli?</label>${hpHTML('B',v.painBz)}<label for="painBw">Dopisek <span class="mut">opcjonalnie, np. boli przy krawądce</span></label><input id="painBw" value="${esc(v.painBw)}" autocomplete="off"></div>
  <label>Skóra</label><div class="pills">${pills('skin',SK.map(x=>[x[1],x[0]]))}</div><div id="gdres"></div></div>
  <div class="card" id="feel"${isPlan?' hidden':''}><h2>Po sesji</h2>
  <label>Jak ciężko było? <span class="mut">Nie wiesz? Pomiń, policzę z Twoich poprzednich sesji.</span></label><div class="pills">${pills('rpe',RP)}</div>
- <label for="pain">Ból po sesji <span class="mut">miejsce, jeśli był</span></label><input id="pain" value="${esc(v.pain)}"></div>
+ <label>Ból po sesji</label><div class="pills">${pills('painA',[['Brak',0],['Lekki',1],['Wyraźny',2]])}</div><div id="painAwrap"${v.painA>0||v.pain?'':' hidden'}><label>Gdzie boli?</label>${hpHTML('A',v.painAz)}<label for="pain">Dopisek <span class="mut">opcjonalnie</span></label><input id="pain" value="${esc(v.pain)}" autocomplete="off"></div></div>
  <div class="card" data-t="Capacity"><h2>Przejścia wg poziomu</h2>${[1,2,3,4,5,6,7,8,9].map(l=>`<div class="cnt"><span class="lvl" style="--hc:${HCOL[l-1]};color:${HTXT[l-1]}" title="Poziom ${l}">${l}</span><button type="button" data-lv="${l}" data-d="-1" aria-label="mniej poz.${l}">−</button><input id="lv${l}" class="lvin${F.lv[l]?' on':''}" type="text" inputmode="numeric" data-n="int" maxlength="3" data-max="999" aria-label="Przejścia na poziomie ${l}" value="${F.lv[l]||0}"><button type="button" data-lv="${l}" data-d="1" aria-label="więcej poz.${l}">+</button></div>`).join('')}<p class="captot">Razem: <b id="captot">${sum(Object.values(F.lv))}</b> przejść</p></div>
  <div class="card" data-t="Limit|Inne"><h2 id="limh">Bouldery limitowe</h2><p class="mut" id="limhint">Jeden wiersz na boulder: poziom, liczba prób, czy był top.</p><div id="limrows">${lim.map(limRow).join('')}</div><button type="button" data-act="addrow">Dodaj boulder</button></div>
  <div class="card" data-t="Tindeq"><h2>Tindeq</h2><label for="grip">Chwyt / protokół</label><input id="grip" list="gl" placeholder="np. Listwa 20 mm, half crimp" value="${esc(ti.grip)}"><datalist id="gl">${grips.map(g=>`<option>${esc(g)}`).join('')}</datalist>
@@ -555,7 +653,7 @@ function form(src,mode,pdate){const v=src||{},isPlan=mode.startsWith('plan');
  <label for="drill">Inny drill <span class="mut">nowa nazwa trafi na listę drilli</span></label><input id="drill" placeholder="np. Silent feet" value="${esc(otherDr)}"></div>
  <div id="accw"><label>Akcesoria</label>${v.acc&&!(v.accs&&v.accs.length)?`<p class="mut">Stary zapis: ${esc(v.acc)}</p>`:''}<div id="acrows">${(v.accs||[]).map(acRow).join('')}</div><div class="acpick" id="acpick" hidden></div><button type="button" class="addbtn" data-act="acopen">+ Dodaj ćwiczenie</button></div>
  <label for="note">Notatka</label><textarea id="note" rows="2">${esc(v.note)}</textarea>
- <div class="btns">${bt}</div></div>`;tsel();drillChips();gdUpdate();tqUpdate()}
+ <div class="btns">${bt}</div></div>`;tsel();drillChips();gdUpdate();tqUpdate();hpRender('B');hpRender('A')}
 function drillChips(){const el=$('#drillpills');if(!el)return;const lib=[...C.drills].sort((a,b)=>a.name.localeCompare(b.name,'pl'));
  el.innerHTML=lib.length?lib.map(d=>`<button type="button" class="pill" data-drill="${esc(d.name)}" aria-pressed="${F.drills.some(x=>x.toLowerCase()==d.name.toLowerCase())}"${d.desc?` title="${esc(d.desc)}"`:''}>${esc(d.name)}</button>`).join(''):'<p class="mut">Lista jest pusta. Dodaj drille w zakładce Drille albo wpisz nazwę poniżej.</p>'}
 function gdCalc(f,date,id){if(f.before==null&&f.painB==null&&f.skin==null)return null;
@@ -584,7 +682,7 @@ function tsel(){const t=$('#type').value;document.querySelectorAll('#v-add [data
 function build(act){const g=i=>(($(i)||{}).value||'').trim(),num=i=>{const t=g(i).replace(',','.');return t===''||isNaN(+t)?null:+t};
  const rockT=$('#type').value=='Skały',min=rockT?null:num('#min');
  const type=$('#type').value,s={id:F.id||uid(),status:act,date:g('#date')||T,type,place:rockT?'':g('#place'),min,note:g('#note'),accs:rockT?[]:[...document.querySelectorAll('#acrows .acr')].map(r=>{const q=c=>r.querySelector(c).value.trim(),nn=c=>{const v=q(c).replace(',','.');return v===''||isNaN(+v)?null:+v};return{name:q('.ac-name'),sets:nn('.ac-sets'),reps:nn('.ac-reps'),kg:nn('.ac-kg')}}).filter(a=>a.name)};
- if(act=='done'){s.rpe=F.rpe;s.before=F.before;s.skin=F.skin;s.painB=F.painB;s.painBw=F.painB>0?g('#painBw'):'';s.pain=g('#pain');const gd=gdCalc(F,s.date,s.id);if(gd)s.day=gd.c}
+ if(act=='done'){s.rpe=F.rpe;s.before=F.before;s.skin=F.skin;s.painB=F.painB;s.painBw=F.painB>0?g('#painBw'):'';s.painBz=F.painB>0&&HP.B?[...HP.B.sel]:[];s.painA=F.painA;s.painAz=F.painA>0&&HP.A?[...HP.A.sel]:[];s.pain=F.painA===0?'':g('#pain');const gd=gdCalc(F,s.date,s.id);if(gd)s.day=gd.c}
  let newDr=[];if(DRF.includes(type)){const other=splitDr(g('#drill')),all=[...F.drills];other.forEach(x=>{if(!all.some(y=>y.toLowerCase()==x.toLowerCase()))all.push(x)});s.drill=all.join(', ');
   newDr=other.filter(x=>!C.drills.some(d=>d.name.toLowerCase()==x.toLowerCase()))}
  if(type=='Capacity')s.cap={...F.lv};
@@ -692,7 +790,7 @@ function summ(s){if(s.type=='Capacity'&&s.cap){const t=Object.entries(s.cap).fil
 function detail(s){let h='';const x=summ(s);if(x)h+=`<p class="mut">${x}</p>`;
  if(s.drill)h+=`<p class="mut">Drill: ${esc(s.drill)}</p>`;else if(s.status!='plan'&&DRQ.includes(s.type))h+='<p class="mut">Bez drilla</p>';
  if(s.accs&&s.accs.length)h+=`<p class="mut">Akcesoria: ${s.accs.map(accTxt).join('; ')}</p>`;else if(s.acc)h+=`<p class="mut">${esc(s.acc)}</p>`;if(s.skin&&s.skin>1)h+=`<p class="mut">Skóra: ${SK[s.skin-1][1].toLowerCase()}</p>`;
- if(s.painB>0)h+=`<p class="mut">Ból przed sesją: ${s.painB==2?'wyraźny':'lekki'}${s.painBw?', '+esc(s.painBw):''}</p>`;if(s.pain)h+=`<p class="mut">Ból po sesji: ${esc(s.pain)}</p>`;if(s.note)h+=`<p class="mut note">${esc(s.note)}</p>`;return h}
+ if(s.painB>0)h+=`<p class="mut">Ból przed sesją: ${esc(painLine(s.painB,s.painBz,s.painBw))}</p>`;if(s.painA>0||s.pain)h+=`<p class="mut">Ból po sesji: ${esc(painLine(s.painA,s.painAz,s.pain))}</p>`;if(s.note)h+=`<p class="mut note">${esc(s.note)}</p>`;return h}
 
 /* ---------- plan ---------- */
 function prevNotes(){const cy=cyc(),ended=[...cy.phases].sort(bySD).filter(p=>p.e<T&&p.note);
@@ -782,6 +880,10 @@ function prog(){const dn=done();let h='';
  h+=`<div class="card"><h2>Obciążenie tygodniowe</h2>${wow}${bars(by.map(a=>sum(a.map(ld))),lab,col,'Obciążenie tygodniowe',av)}<p class="mut">${av?'Procent Twojego średniego tygodnia (przerywana linia). Obciążenie to czas sesji razy RPE.':'Czas × RPE. Gdy zbierze się więcej tygodni, słupki pokażą procent Twojej średniej.'} Czerwone słupki to obecna faza${ws.some(w=>{const p=phAny(add(w,3));return p&&p.dl})?', ciemne to deload':''}.</p>${acwr}</div>`;
  const rv=by.map(a=>{const r=a.filter(x=>x.rpe);return r.length?sum(r.map(x=>x.rpe))/r.length:null}),rs=ss.filter(x=>x.rpe);
  if(rv.some(x=>x!=null))h+=`<div class="card"><h2>Trend RPE</h2>${rpeChart(rv,lab)}<p class="mut">Średnie RPE w tygodniu z ocenionych sesji.${rs.length?` W tym okresie średnio ${(sum(rs.map(x=>x.rpe))/rs.length).toFixed(1)}.`:''}</p></div>`;
+ const pz=new Map();let pzN=0;ss.forEach(x=>{const ks=new Set([...(x.painBz||[]),...(x.painAz||[])]);if(ks.size)pzN++;ks.forEach(k=>pz.set(k,(pz.get(k)||0)+1))});
+ if(pz.size){const pmx=Math.max(...pz.values()),keys=[...pz.keys()],views=[];['P','L'].forEach(hh=>['w','g'].forEach(sd=>{if(keys.some(k=>k.startsWith(hh+'|'+sd+'|')))views.push([hh,sd])}));
+  const top=[...pz].sort((a,b)=>b[1]-a[1]).slice(0,5);
+  h+=`<div class="card"><h2>Mapa bólu</h2>${views.length?`<div class="hm-grid">${views.map(([hh,sd])=>`<figure><svg class="hp-svg" viewBox="0 0 340 460" role="img" aria-label="Mapa bólu: ${hh=='L'?'lewa':'prawa'} dłoń, ${sd=='w'?'wnętrze':'grzbiet'}">${handSVG({pid:'hm'+hh+sd,hand:hh,side:sd,heat:pz,max:pmx})}</svg><figcaption>${hh=='L'?'Lewa':'Prawa'} · ${sd=='w'?'wnętrze':'grzbiet'}</figcaption></figure>`).join('')}</div>`:''}<ol class="hp-top">${top.map(([k,n])=>`<li>${esc(hzParts(k).short)} <span class="mut">· ${n} ${plS(n)}</span></li>`).join('')}</ol><p class="mut">Sesje z bólem w zaznaczonym miejscu, przed albo po treningu: ${pzN} z ${ss.length} w tym okresie. Im mocniejszy czerwony, tym częściej.</p></div>`}
  /* ---- per type, only what was done in the period ---- */
  const cap=ss.filter(x=>x.cap&&capN(x));
  if(cap.length){const tot={};cap.forEach(x=>Object.entries(x.cap).forEach(([l,n])=>tot[l]=(tot[l]||0)+n));const all=sum(Object.values(tot)),avl=x=>{const n=capN(x);return n?sum(Object.entries(x.cap).map(([l,c])=>l*c))/n:0},srt=[...cap].sort((a,b)=>a.date.localeCompare(b.date));
@@ -888,7 +990,7 @@ const fdy=s=>s?s.slice(8,10)+'.'+s.slice(5,7)+'.'+s.slice(0,4):'';
 const EXH=[['Data',11],['Dzień',6],['Faza',22],['Typ',14],['Miejsce',14],['Czas (min)',9],['RPE',6],['Obciążenie',11],['Przejścia Capacity',10],['Wynik',42,1],['Drill',22,1],['Akcesoria',32,1],['Skóra',9],['Ból',28,1],['Notatka',55,1]];
 const EXS=[['Faza',24],['Od',11],['Do',11],['Tygodnie',9],['Sesje',8],['Godziny',9],['Śr. RPE',8],['Wnioski',90,1]];
 function expData(cy,ps){const ss=done().filter(x=>ps.some(p=>x.date>=p.s&&x.date<=p.e)).sort((a,b)=>a.date.localeCompare(b.date));
- const rows=ss.map(x=>{const p=ps.find(q=>x.date>=q.s&&x.date<=q.e);return [x.date,WD[D(x.date).getDay()],p?phLbl(p):'',x.type,x.place||'',x.min||null,x.rpe||null,x.min||x.type=='Skały'||x.type=='Tindeq'?Math.round(ld(x)):null,x.type=='Capacity'&&x.cap?capN(x):null,txt(summ(x)).replace(/^Razem \d+: /,''),x.drill||'',x.accs&&x.accs.length?txt(x.accs.map(accTxt).join('; ')):(x.acc||''),x.skin&&x.skin>1?SK[x.skin-1][1]:'',[x.painB>0?'przed: '+(x.painB==2?'wyraźny':'lekki')+(x.painBw?' ('+x.painBw+')':''):'',x.pain?'po: '+x.pain:''].filter(Boolean).join('; '),x.note||'']});
+ const rows=ss.map(x=>{const p=ps.find(q=>x.date>=q.s&&x.date<=q.e);return [x.date,WD[D(x.date).getDay()],p?phLbl(p):'',x.type,x.place||'',x.min||null,x.rpe||null,x.min||x.type=='Skały'||x.type=='Tindeq'?Math.round(ld(x)):null,x.type=='Capacity'&&x.cap?capN(x):null,txt(summ(x)).replace(/^Razem \d+: /,''),x.drill||'',x.accs&&x.accs.length?txt(x.accs.map(accTxt).join('; ')):(x.acc||''),x.skin&&x.skin>1?SK[x.skin-1][1]:'',[x.painB>0?'przed: '+painLine(x.painB,x.painBz,x.painBw,0,', '):'',x.painA>0||x.pain?'po: '+painLine(x.painA,x.painAz,x.pain,0,', '):''].filter(Boolean).join(' | '),x.note||'']});
  const sum_=ps.map(p=>{const st=pstat(p);return [phLbl(p),p.s,p.e,Math.ceil((diff(p.s,p.e)+1)/7),st.n,+st.h.toFixed(1),st.rpe?+st.rpe.toFixed(1):null,p.note||'']});
  let tot=null;if(ps.length>1&&ps.length==cy.phases.length){const all=ss.filter(x=>x.rpe);tot=['Cały cykl',cStart(cy),cEnd(cy),Math.ceil((diff(cStart(cy),cEnd(cy))+1)/7),ss.length,+(sum(ss.map(x=>x.min))/60).toFixed(1),all.length?+(sum(all.map(x=>x.rpe))/all.length).toFixed(1):null,'']}
  return {rows,sum:sum_,tot}}
@@ -985,7 +1087,7 @@ function view(id){const s=byId(id);if(!s)return;const isP=s.status=='plan',GC={G
  else if(!isP&&DRQ.includes(s.type))h+=`<h3>Drille</h3><p class="mut">Bez drilla.</p>`;
  if(s.accs&&s.accs.length)h+=`<h3>Akcesoria</h3>`+s.accs.map(a=>`<div class="sh-row" style="grid-template-columns:1fr auto auto"><span>${esc(a.name)}</span><span class="mut">${a.sets?a.sets+(a.reps?' × '+a.reps:' serii'):a.reps?a.reps+' powt.':''}</span><b>${a.kg!=null?a.kg+' kg':''}</b></div>`).join('');else if(s.acc)h+=`<h3>Akcesoria</h3><p>${esc(s.acc)}</p>`;
  if(s.skin&&s.skin>1)h+=`<h3>Skóra</h3><p>${SK[s.skin-1][1]}</p>`;
- if(s.painB>0)h+=`<h3>Ból przed sesją</h3><p>${s.painB==2?'Wyraźny':'Lekki'}${s.painBw?', '+esc(s.painBw):''}</p>`;if(s.pain)h+=`<h3>Ból po sesji</h3><p>${esc(s.pain)}</p>`;
+ if(s.painB>0)h+=`<h3>Ból przed sesją</h3><p>${esc(painLine(s.painB,s.painBz,s.painBw,1))}</p>`;if(s.painA>0||s.pain)h+=`<h3>Ból po sesji</h3><p>${esc(painLine(s.painA,s.painAz,s.pain,1))}</p>`;
  if(s.note)h+=`<h3>Notatka</h3><p class="note">${esc(s.note)}</p>`;
  h+=`<div class="btns">${isP?`<button class="go" data-act="doplan" data-id="${s.id}">Zrobione</button><button data-act="editplan" data-id="${s.id}">Edytuj</button>`:`<button class="go" data-act="edit" data-id="${s.id}">Edytuj</button>`}<button data-act="del" data-id="${s.id}">Usuń</button></div>`;
  $('#sheetp').innerHTML=h;$('#sheet').hidden=false;document.body.style.overflow='hidden';$('#sheetp').scrollTop=0;setTimeout(()=>{const x=$('.sh-x');x&&x.focus()},30)}
@@ -995,6 +1097,8 @@ function closeSheet(){$('#sheet').hidden=true;document.body.style.overflow=''}
 function homeView(){const el=$('#v-home');if(!el)return;const dn=done().sort((a,b)=>b.date.localeCompare(a.date)||b.id.localeCompare(a.id)),last=dn[0];let h='';
  h+=hasDraft()?`<button class="cta" data-act="newses"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>Dokończ sesję</button><div class="draftnote"><span>Masz niezapisaną sesję. Wpisane dane są bezpieczne.</span><button class="sm" data-act="dropdraft">Odrzuć</button></div>`:`<button class="cta" data-act="newses"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Zapisz sesję</button>`;
  const bs=dn.filter(x=>x.before!=null).slice(0,2);if(bs.length==2&&bs.every(x=>x.before>=2))h+='<div class="card warn"><b>Dwie ostatnie sesje zaczynałeś zmęczony</b> (2 lub więcej w skali 1–5). Następną zrób według parametrów z poprzedniego tygodnia, bez dokładania.</div>';
+ {const r5=dn.slice(0,5),pc=new Map();r5.forEach(x=>new Set([...(x.painBz||[]),...(x.painAz||[])]).forEach(k=>pc.set(k,(pc.get(k)||0)+1)));const rp=[...pc].filter(e=>e[1]>=3).sort((a,b)=>b[1]-a[1]);
+  if(rp.length)h+=`<div class="card warn"><b>Ten sam ból się powtarza:</b> ${rp.slice(0,2).map(([k,n])=>`${esc(hzParts(k).short)} (${n} z ${r5.length} ostatnich sesji)`).join(', ')}. Odpuść tej części ręki, a jeśli ból nie mija, skonsultuj się z fizjoterapeutą.</div>`}
  const w0=wk(T),days=[...Array(7)].map((_,i)=>add(w0,i)),wd=dn.filter(x=>x.date>=w0&&x.date<=days[6]),GC={G:'var(--c1)',Y:'var(--c2)',R:'var(--c3)'};
  h+=`<button class="card hweek" data-tab="plan"><span class="hwtop"><b>Ten tydzień</b><span class="mut">${wd.length} ${plS(wd.length)}${wd.length?', '+hm(sum(wd.map(x=>x.min))):''}</span></span><span class="hwdays">${days.map(d=>{const ss=wd.filter(x=>x.date==d),c=ss.find(x=>x.day);return `<span class="hwd${d==T?' today':''}${d>T?' fut':''}"><small>${WD[D(d).getDay()]}</small><i style="${ss.length?`background:${c?GC[c.day]:'var(--accent)'};border-color:transparent`:''}">${ss.length>1?ss.length:''}</i></span>`}).join('')}</span></button>`;
  if(last){const ago=diff(last.date,T),lv=lvlOf(last),x=summ(last);
@@ -1013,7 +1117,7 @@ document.addEventListener('click',e=>{const t=e.target;let b;
  if(b=t.closest('[data-setdate]')){$('#date').value=b.dataset.setdate;document.querySelectorAll('[data-setdate]').forEach(x=>x.setAttribute('aria-pressed',x===b));gdUpdate();saveDraft();return}
  if(b=t.closest('[data-ftype]')){const v=b.dataset.ftype,i=HF.types.indexOf(v);i<0?HF.types.push(v):HF.types.splice(i,1);saveHF();hFilters();hList();return}
  if(b=t.closest('[data-drill]')){const n=b.dataset.drill,i=F.drills.findIndex(x=>x.toLowerCase()==n.toLowerCase());i<0?F.drills.push(n):F.drills.splice(i,1);b.setAttribute('aria-pressed',i<0);return}
- if(b=t.closest('.pill[data-g]')){const g=b.dataset.g,v=+b.dataset.v;F[g]=F[g]==v?null:v;b.parentNode.querySelectorAll('.pill').forEach(x=>x.setAttribute('aria-pressed',F[g]==+x.dataset.v));if(g=='painB'&&$('#painBwrap')){$('#painBwrap').hidden=!(F.painB>0);if(F.painB>0&&!$('#painBw').value)setTimeout(()=>$('#painBw').focus(),30)}gdUpdate();return}
+ if(b=t.closest('.pill[data-g]')){const g=b.dataset.g,v=+b.dataset.v;F[g]=F[g]==v?null:v;b.parentNode.querySelectorAll('.pill').forEach(x=>x.setAttribute('aria-pressed',F[g]==+x.dataset.v));if(g=='painB'&&$('#painBwrap'))$('#painBwrap').hidden=!(F.painB>0);if(g=='painA'&&$('#painAwrap'))$('#painAwrap').hidden=!(F.painA>0||$('#pain').value.trim());if(g=='painA'||g=='painB')saveDraft();gdUpdate();return}
  if(b=t.closest('[data-lv]')){const l=b.dataset.lv;F.lv[l]=Math.max(0,(F.lv[l]||0)+ +b.dataset.d);const el=$('#lv'+l);el.value=F.lv[l];el.classList.toggle('on',F.lv[l]>0);$('#captot').textContent=sum(Object.values(F.lv));return}
  b=t.closest('[data-act]');if(!b)return;const a=b.dataset.act,id=b.dataset.id;
  if(a=='view'){view(id);return}
