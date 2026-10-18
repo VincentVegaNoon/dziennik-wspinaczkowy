@@ -438,6 +438,7 @@ input,select,textarea{font-size:max(16px,1em)}
 .vgrow{gap:8px!important;margin-top:8px!important}
 .vgrow .vg{display:inline-flex;align-items:baseline;gap:6px;height:auto;min-width:0;padding:7px 12px;border-radius:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);color:var(--ink);font:700 20px/1 var(--disp)}
 .vgrow .vg small{margin:0!important;opacity:1!important;color:var(--accent);font:700 14px/1 var(--body);font-variant-numeric:tabular-nums}
+.achist{list-style:none;margin:0 0 8px;padding:0;display:flex;flex-direction:column;gap:4px}.achist li{display:flex;justify-content:space-between;gap:10px;font-size:14px;font-variant-numeric:tabular-nums}.achist li span{color:var(--mut)}.achist li b{font-weight:600;text-align:right}
 </style>
 </head>
 <body class="loggedout">
@@ -456,7 +457,7 @@ input,select,textarea{font-size:max(16px,1em)}
 const CFG=window.DZIENNIK_CONFIG||{};
 const SUPABASE_URL=String(CFG.url||'').trim();
 const SUPABASE_KEY=String(CFG.key||'').trim();
-const APPVER='15.10 · 17:40';
+const APPVER='18.10 · 19:10';
 const LS='climb.sessions.v1',LSC='climb.cycles.v1';
 const COL=[['--c1','Zielony'],['--c2','Żółty'],['--c3','Czerwony'],['--c4','Fioletowy'],['--c5','Niebieski'],['--c6','Pomarańczowy'],['--c7','Turkusowy'],['--c8','Różowy']];
 const TY=['Capacity','Limit','Tindeq','Tension Board','Kilter Board','Technika','Skały','Inne'],BOARDS=['Tension Board','Kilter Board'];
@@ -1065,9 +1066,27 @@ function drList(){const el=$('#drlist');if(!el)return;const q=DRS.q.trim().toLow
   if(drEdit==d.id)return `<div class="drrow open"><label for="dre-name">Nazwa</label><input id="dre-name" value="${esc(d.name)}"><label for="dre-desc">Opis</label><textarea id="dre-desc" rows="3">${esc(d.desc)}</textarea><p class="mut">Zmiana nazwy nie zmienia wpisów w zapisanych sesjach.</p><div class="btns"><button class="go" data-act="drsave" data-id="${d.id}">Zapisz</button><button data-act="drcancel">Anuluj</button></div></div>`;
   return `<details class="drrow"><summary><span><b>${esc(d.name)}</b><span class="mut">${u.n?`${u.n}× · ostatnio ${fd(u.last)}${diff(u.last,T)<=14?` (${diff(u.last,T)==0?'dziś':diff(u.last,T)+' dni temu'})`:''}`:'jeszcze nie robiony'}</span></span></summary>${d.desc?`<p class="note">${esc(d.desc)}</p>`:'<p class="mut">Bez opisu.</p>'}<div class="btns"><button data-act="dredit" data-id="${d.id}">Edytuj</button><button data-act="drdel" data-id="${d.id}">Usuń</button></div></details>`}).join('')
   +(show.length<lib.length?`<button class="drmore" data-act="drall">Pokaż wszystkie (${lib.length})</button>`:!q&&DRS.all&&lib.length>LIM?`<button class="drmore" data-act="drall">Zwiń listę</button>`:'')}
+let ACS={q:'',sort:'last',all:false,add:false};
+const accHist=n=>{const k=n.toLowerCase(),r=[];done().sort((a,b)=>b.date.localeCompare(a.date)).forEach(x=>(x.accs||[]).forEach(a=>{if(a.name.toLowerCase()==k)r.push({date:x.date,a})}));return r};
+const accPar=a=>accTxt(a).replace(esc(a.name),'').replace(/^ ?,? ?/,'');
 function accView(){
- let h='';const al=[...C.accLib].sort((x,y)=>x.localeCompare(y,'pl'));h+=`<h2 style="margin:26px 4px 6px">Ćwiczenia akcesoryjne</h2><div class="card" style="--sc:var(--c4);--sct:22%"><p class="mut">Lista do szybkiego wyboru przy zapisie sesji. Nowe ćwiczenie dodaje się samo, gdy wpiszesz je w sesji.</p>${al.length?al.map(n=>{const u=done().filter(x=>(x.accs||[]).some(a=>a.name.toLowerCase()==n.toLowerCase())),l=lastAcc(n);return `<div class="h" style="margin:12px 0"><div><b>${esc(n)}</b><p class="mut">${u.length?`${u.length} ${plS(u.length)}, ostatnio ${accTxt(l).replace(esc(n),'').replace(/^ ?,? ?/,'')||'bez parametrów'}`:'Jeszcze nie robione'}</p></div><button class="rmb" data-act="acdel" data-n="${esc(n)}"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3\"/></svg>Usuń</button></div>`}).join(''):'<p>Brak ćwiczeń.</p>'}</div>`;
- $('#v-dr').insertAdjacentHTML('beforeend',h)}
+ let h=`<h2 style="margin:26px 4px 6px">Ćwiczenia akcesoryjne</h2>`;
+ h+=ACS.add?`<div class="card"><h2>Nowe ćwiczenie</h2><label for="ac-new">Nazwa</label><input id="ac-new" placeholder="np. Finger curls" autocomplete="off"><div class="btns"><button class="go" data-act="acadd">Dodaj do listy</button><button data-act="acaddx">Anuluj</button></div></div>`:`<button class="phadd" style="margin:0 0 14px;width:100%" data-act="acaddopen">+ Nowe ćwiczenie</button>`;
+ h+=`<div class="card drcard"><div class="h"><h2 style="margin:0">Ćwiczenia <span class="mut" style="font:400 15px var(--body)">${C.accLib.length}</span></h2></div><p class="mut" style="margin:6px 0 0">Lista do szybkiego wyboru przy zapisie sesji. Ćwiczenie wpisane w sesji dodaje się tu samo.</p>`;
+ if(C.accLib.length>5)h+=`<input id="ac-q" type="search" placeholder="Szukaj ćwiczenia" value="${esc(ACS.q)}" autocomplete="off" style="margin-top:12px">`;
+ if(C.accLib.length>1)h+=`<div class="chips" style="margin-top:10px">${[['last','Ostatnio robione'],['freq','Najczęściej'],['az','A–Z']].map(x=>`<button class="pill" data-act="acsort" data-v="${x[0]}" aria-pressed="${ACS.sort==x[0]}">${x[1]}</button>`).join('')}</div>`;
+ h+=`<div id="aclist"></div></div>`;
+ $('#v-dr').insertAdjacentHTML('beforeend',h);acList();if(ACS.add)setTimeout(()=>{const i=$('#ac-new');if(i)i.focus()},30)}
+function acList(){const el=$('#aclist');if(!el)return;const q=ACS.q.trim().toLowerCase();
+ if(!C.accLib.length){el.innerHTML='<p class="mut" style="margin-top:12px">Lista jest pusta. Dodaj ćwiczenie albo wpisz je przy zapisie sesji.</p>';return}
+ let L=C.accLib.map(n=>({n,hs:accHist(n)})).filter(x=>!q||x.n.toLowerCase().includes(q));const az=(a,b)=>a.n.localeCompare(b.n,'pl');
+ L.sort(ACS.sort=='az'?az:ACS.sort=='freq'?(a,b)=>b.hs.length-a.hs.length||az(a,b):(a,b)=>((b.hs[0]||{}).date||'').localeCompare((a.hs[0]||{}).date||'')||az(a,b));
+ if(!L.length){el.innerHTML=`<p class="mut" style="margin-top:12px">Brak ćwiczeń pasujących do „${esc(ACS.q)}”.</p>`;return}
+ const LIM=8,show=q||ACS.all?L:L.slice(0,LIM);
+ el.innerHTML=show.map(({n,hs})=>{const l=hs[0],par=l?accPar(l.a):'',kg=hs.filter(x=>x.a.kg!=null);
+  const prog=kg.length>1&&kg[kg.length-1].a.kg!=kg[0].a.kg?`<p class="mut">Ciężar: ${kg[kg.length-1].a.kg} → ${kg[0].a.kg} kg</p>`:'';
+  return `<details class="drrow"><summary><span><b>${esc(n)}</b><span class="mut">${l?`${hs.length}× · ostatnio ${fd(l.date)}${par?' · '+par:''}`:'jeszcze nie robione'}</span></span></summary>${hs.length?`<ul class="achist">${hs.slice(0,5).map(x=>`<li><span>${fdw(x.date)}</span><b>${accPar(x.a)||'bez parametrów'}</b></li>`).join('')}</ul>`:'<p class="mut">Jeszcze nie było w żadnej sesji.</p>'}${prog}<div class="btns"><button class="rmb" data-act="acdel" data-n="${esc(n)}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>Usuń z listy</button></div></details>`}).join('')
+  +(show.length<L.length?`<button class="drmore" data-act="acall">Pokaż wszystkie (${L.length})</button>`:!q&&ACS.all&&L.length>LIM?`<button class="drmore" data-act="acall">Zwiń listę</button>`:'')}
 
 /* ---------- session preview ---------- */
 function view(id){const s=byId(id);if(!s)return;const isP=s.status=='plan',GC={G:'--c1',Y:'--c2',R:'--c3'};
@@ -1173,6 +1192,11 @@ document.addEventListener('click',e=>{const t=e.target;let b;
  else if(a=='drall'){DRS.all=!DRS.all;drList()}
  else if(a=='dredit'){drEdit=id;drView()}
  else if(a=='drcancel'){drEdit=null;drView()}
+ else if(a=='acaddopen'){ACS.add=true;drView()}
+ else if(a=='acaddx'){ACS.add=false;drView()}
+ else if(a=='acadd'){const n=$('#ac-new').value.trim();if(!n){toast('Wpisz nazwę ćwiczenia.');return}if(C.accLib.some(x=>x.toLowerCase()==n.toLowerCase())){toast('To ćwiczenie jest już na liście.');return}C.accLib.push(n);ACS.add=false;putC();toast('Dodano ćwiczenie')}
+ else if(a=='acsort'){ACS.sort=b.dataset.v;drView()}
+ else if(a=='acall'){ACS.all=!ACS.all;acList()}
  else if(a=='acdel'){if(b.dataset.arm){C.accLib=C.accLib.filter(x=>x!=b.dataset.n);putC();toast('Usunięto z listy')}else{b.dataset.arm=1;b.lastChild.textContent='Na pewno?'}}
  else if(a=='drsave'){const n=$('#dre-name').value.trim();if(!n){toast('Wpisz nazwę drilla.');return}
   if(C.drills.some(d=>d.id!=id&&d.name.toLowerCase()==n.toLowerCase())){toast('Drill o tej nazwie już jest.');return}
@@ -1219,7 +1243,7 @@ document.addEventListener('change',e=>{const t=e.target,k=t.dataset&&t.dataset.n
  const mx=+t.dataset.max,mn=+(t.dataset.min||0);if(mx&&x>mx)x=mx;if(x<mn)x=mn;const nv=k=='int'?String(Math.round(x)):String(x).replace('.',',');if(nv!==t.value.replace(/[.,]$/,'')||/[.,]$/.test(t.value)){t.value=nv;t.dispatchEvent(new Event('input',{bubbles:true}))}},true);
 document.addEventListener('focusout',e=>{const t=e.target;if(t.classList&&t.classList.contains('lvin')){const l=t.id.slice(2);t.value=F.lv[l]||0}});
 document.addEventListener('focusin',e=>{if(e.target.classList&&e.target.classList.contains('lvin'))setTimeout(()=>e.target.select(),0)});
-document.addEventListener('input',e=>{if(e.target.id=='dr-q'){DRS.q=e.target.value;drList();return}if(e.target.id=='hf-q'){HF.q=e.target.value;saveHF();clearTimeout(hList.t);hList.t=setTimeout(()=>{hList();const n=$('#hfilt h2');},150);return}if(e.target.closest('#v-cyc'))cdirty=true;else if(['grip','pct'].includes(e.target.id))tqUpdate();else if(/^lv\d$/.test(e.target.id)){const l=e.target.id.slice(2),v=parseInt(e.target.value,10);F.lv[l]=isNaN(v)||v<0?0:v;e.target.classList.toggle('on',F.lv[l]>0);$('#captot').textContent=sum(Object.values(F.lv))}else if(e.target.id=='date')gdUpdate()});
+document.addEventListener('input',e=>{if(e.target.id=='ac-q'){ACS.q=e.target.value;acList();return}if(e.target.id=='dr-q'){DRS.q=e.target.value;drList();return}if(e.target.id=='hf-q'){HF.q=e.target.value;saveHF();clearTimeout(hList.t);hList.t=setTimeout(()=>{hList();const n=$('#hfilt h2');},150);return}if(e.target.closest('#v-cyc'))cdirty=true;else if(['grip','pct'].includes(e.target.id))tqUpdate();else if(/^lv\d$/.test(e.target.id)){const l=e.target.id.slice(2),v=parseInt(e.target.value,10);F.lv[l]=isNaN(v)||v<0?0:v;e.target.classList.toggle('on',F.lv[l]>0);$('#captot').textContent=sum(Object.values(F.lv))}else if(e.target.id=='date')gdUpdate()});
 loadLocal();form(null,'new');renderData();cycleView();show('home');ddEnhance();initAuth();
 </script>
 
