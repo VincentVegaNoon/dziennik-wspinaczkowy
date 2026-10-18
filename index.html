@@ -439,6 +439,14 @@ input,select,textarea{font-size:max(16px,1em)}
 .vgrow .vg{display:inline-flex;align-items:baseline;gap:6px;height:auto;min-width:0;padding:7px 12px;border-radius:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);color:var(--ink);font:700 20px/1 var(--disp)}
 .vgrow .vg small{margin:0!important;opacity:1!important;color:var(--accent);font:700 14px/1 var(--body);font-variant-numeric:tabular-nums}
 .achist{list-style:none;margin:0 0 8px;padding:0;display:flex;flex-direction:column;gap:4px}.achist li{display:flex;justify-content:space-between;gap:10px;font-size:14px;font-variant-numeric:tabular-nums}.achist li span{color:var(--mut)}.achist li b{font-weight:600;text-align:right}
+.vgrow .vg{align-items:center!important;gap:7px!important;padding:8px 12px!important}
+.vgrow .vg small{font:700 15px/1 var(--disp)!important;letter-spacing:.02em;transform:translateY(1px)}
+.prm:has(.lvls){display:grid;grid-template-columns:auto 1fr;align-items:center;gap:10px}
+.prm .lvls{display:flex;gap:6px;min-width:66px}
+.ptx{white-space:nowrap;font-variant-numeric:tabular-nums;font-size:15px}
+.prm:has(.lvls){gap:8px!important;min-width:0}
+.prow:has(.lvls) .pbar{width:46px}
+.prow:has(.lvls){gap:8px;padding-left:6px;padding-right:6px}
 </style>
 </head>
 <body class="loggedout">
@@ -457,7 +465,7 @@ input,select,textarea{font-size:max(16px,1em)}
 const CFG=window.DZIENNIK_CONFIG||{};
 const SUPABASE_URL=String(CFG.url||'').trim();
 const SUPABASE_KEY=String(CFG.key||'').trim();
-const APPVER='18.10 · 19:10';
+const APPVER='18.10 · 19:20';
 const LS='climb.sessions.v1',LSC='climb.cycles.v1';
 const COL=[['--c1','Zielony'],['--c2','Żółty'],['--c3','Czerwony'],['--c4','Fioletowy'],['--c5','Niebieski'],['--c6','Pomarańczowy'],['--c7','Turkusowy'],['--c8','Różowy']];
 const TY=['Capacity','Limit','Tindeq','Tension Board','Kilter Board','Technika','Skały','Inne'],BOARDS=['Tension Board','Kilter Board'];
@@ -897,7 +905,7 @@ function prog(){const dn=done();let h='';
  const lim=ss.filter(x=>x.type=='Limit'&&x.lim&&x.lim.length).sort((a,b)=>b.date.localeCompare(a.date));
  if(lim.length){const rows=lim.flatMap(x=>x.lim),tops=rows.filter(r=>r.top).length,tr=sum(rows.map(r=>r.tries||0));
   h+=`<div class="card"><h2>Limit</h2><div class="tiles sh-tiles"><div><b>${Math.round(tops/rows.length*100)}%</b><span>boulderów z topem</span></div><div><b>${tops}/${rows.length}</b><span>topy</span></div><div><b>${tr?(tr/rows.length).toFixed(1):'–'}</b><span>prób na boulder</span></div></div>
-  <div class="plist">${lim.map(x=>{const t=x.lim.filter(r=>r.top).length,lv=[...new Set(x.lim.map(r=>r.lv).filter(v=>v!=null))];return prow(x,`<span class="lvls">${lv.map(l=>`<span class="lvl sm" style="--hc:${HCOL[l-1]};color:${HTXT[l-1]}">${l}</span>`).join('')}</span>${t}/${x.lim.length} topów`,`<span class="pbar"><i style="width:${t/x.lim.length*100}%"></i></span>`)}).join('')}</div><p class="mut">Postęp w limicie widać jako rosnący odsetek topów albo mniej prób na tym samym poziomie.</p></div>`}
+  <div class="plist">${lim.map(x=>{const t=x.lim.filter(r=>r.top).length,lv=[...new Set(x.lim.map(r=>r.lv).filter(v=>v!=null))].sort((a,b)=>a-b);return prow(x,`<span class="lvls">${lv.map(l=>`<span class="lvl sm" style="--hc:${HCOL[l-1]};color:${HTXT[l-1]}">${l}</span>`).join('')}</span><span class="ptx">${t}/${x.lim.length} topów</span>`,`<span class="pbar"><i style="width:${t/x.lim.length*100}%"></i></span>`)}).join('')}</div><p class="mut">Postęp w limicie widać jako rosnący odsetek topów albo mniej prób na tym samym poziomie.</p></div>`}
  BOARDS.forEach(B=>{const bd=ss.filter(x=>x.type==B&&x.pw&&x.pw.probs&&x.pw.probs.length).sort((a,b)=>b.date.localeCompare(a.date));if(!bd.length)return;const pr=bd.flatMap(x=>x.pw.probs),t=pr.filter(r=>r.top),cnt={};t.forEach(r=>cnt[r.g]=(cnt[r.g]||0)+1);
   h+=`<div class="card"><h2>${B}</h2><div class="tiles sh-tiles"><div><b>${t.length}/${pr.length}</b><span>topy</span></div><div><b>${t.length?VG[Math.max(...t.map(r=>r.g))]:'–'}</b><span>najtrudniejszy top</span></div><div><b>${Math.round(t.length/pr.length*100)}%</b><span>skuteczność</span></div></div>
   ${t.length?`<p class="mut" style="margin-top:12px">Topy według wyceny</p><div class="vgrow">${Object.keys(cnt).sort((a,b)=>a-b).map(g=>`<span class="vg">${VG[g]} <small>×${cnt[g]}</small></span>`).join('')}</div>`:''}
