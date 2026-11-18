@@ -456,6 +456,38 @@ input,select,textarea{font-size:max(16px,1em)}
 .rpefine button{min-height:40px;padding:0;border-radius:6px!important;background:rgba(255,255,255,.06)!important;border:1px solid rgba(255,255,255,.12)!important;color:var(--ink);font:700 16px var(--disp);font-variant-numeric:tabular-nums}
 .rpefine button[aria-pressed=true]{background:#F3F3F3!important;color:#111;border-color:#F3F3F3!important}
 .rpefine p{grid-column:1/-1;margin:4px 0 0;font-size:13px}
+
+.calsw{display:flex;gap:4px;background:var(--p);border:1px solid var(--ln);border-radius:12px;padding:4px;margin:0 0 12px}
+.calsw button{flex:1;background:none;border:0;border-radius:9px;padding:9px 0;font-weight:600;color:var(--mut)}
+.calsw button[aria-pressed=true]{background:var(--soft);color:var(--ink)}
+.mhead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+.mhead h2{margin:0}
+.mhead button{width:40px;height:40px;border-radius:10px;font-size:1.3rem;padding:0}
+.mhead button:disabled{opacity:.3}
+.mbtn{width:100%;margin:0 0 12px}
+.msel{display:flex;align-items:center;gap:10px;justify-content:space-between;background:color-mix(in srgb,var(--c7) 14%,transparent);border:1px solid color-mix(in srgb,var(--c7) 45%,transparent);border-radius:12px;padding:10px 12px;margin:0 0 12px;font-size:.92rem}
+.mgrid{display:grid;grid-template-columns:repeat(7,1fr);row-gap:4px}
+.mwd{text-align:center;font-size:.72rem;color:var(--mut);text-transform:uppercase;letter-spacing:.04em;padding-bottom:4px}
+.mday{position:relative;background:none;border:0;border-radius:0;min-height:50px;transition:none;padding:6px 0 4px;display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--ink);font:inherit}
+.mday .mdn{font-size:.95rem;line-height:1;width:28px;height:28px;display:grid;place-items:center;border-radius:50%}
+.mday.out{opacity:.3}.mday.fut .mdn{color:var(--mut)}
+.mday.today .mdn{box-shadow:inset 0 0 0 2px var(--c3);font-weight:700}
+.mday.bk{background:color-mix(in srgb,var(--bk) 22%,transparent)}
+.mday.bk.bs{border-top-left-radius:12px;border-bottom-left-radius:12px}
+.mday.bk.be{border-top-right-radius:12px;border-bottom-right-radius:12px}
+.mday.pick .mdn{background:var(--c7);color:#000;font-weight:700}
+.mdots{display:flex;gap:3px;height:6px}.mdots i{width:6px;height:6px;border-radius:50%}
+.mlist{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:6px}
+.mlist button{width:100%;display:flex;gap:10px;align-items:center;text-align:left;background:none;border:1px solid var(--ln);border-radius:12px;padding:10px 12px;font-weight:400}
+.mlist i{flex:0 0 10px;height:10px;border-radius:3px}
+.mnote{margin:12px 0 0}
+.brk-k{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px}
+.brk-k button{border-radius:10px;padding:10px 0;font-weight:600}
+.brk-k button[aria-pressed=true]{background:color-mix(in srgb,var(--bk) 25%,transparent);border-color:var(--bk);color:var(--ink)}
+label.chk{display:flex;align-items:center;gap:8px;margin:4px 0 12px}
+label.chk input{width:20px;height:20px;margin:0}
+.wbrk{background:color-mix(in srgb,var(--bk) 20%,transparent);border:1px solid color-mix(in srgb,var(--bk) 50%,transparent);color:var(--ink);border-radius:999px;padding:4px 10px;font-size:.82rem;font-weight:600}
+.brcard{border-left:4px solid var(--bk)}.brcard .btns{margin-top:10px}
 </style>
 </head>
 <body class="loggedout">
@@ -474,7 +506,7 @@ input,select,textarea{font-size:max(16px,1em)}
 const CFG=window.DZIENNIK_CONFIG||{};
 const SUPABASE_URL=String(CFG.url||'').trim();
 const SUPABASE_KEY=String(CFG.key||'').trim();
-const APPVER='19.10 · 12:10';
+const APPVER='18.11 · 10:00';
 const LS='climb.sessions.v1',LSC='climb.cycles.v1';
 const COL=[['--c1','Zielony'],['--c2','Żółty'],['--c3','Czerwony'],['--c4','Fioletowy'],['--c5','Niebieski'],['--c6','Pomarańczowy'],['--c7','Turkusowy'],['--c8','Różowy']];
 const TY=['Capacity','Limit','Tindeq','Tension Board','Kilter Board','Technika','Skały','Inne'],BOARDS=['Tension Board','Kilter Board'];
@@ -824,17 +856,17 @@ function notesCard(n){return n?`<div class="card"><h2>${esc(n.t)}</h2>${n.ps.map
 let weekOff=0;
 function weekView(){const w0=add(wk(T),7*weekOff),days=[...Array(7)].map((_,i)=>add(w0,i)),w6=days[6];
  const inW=done().filter(x=>x.date>=w0&&x.date<=w6),dn=inW.filter(x=>x.status!='plan'),pl=inW.filter(x=>x.status=='plan');
- const restDays=days.filter(d=>d<T&&!dn.some(x=>x.date==d)).length,load=Math.round(sum(dn.map(ld)));
+ const brD=days.filter(d=>d<=T&&brOf(d)&&!dn.some(x=>x.date==d)).length,restDays=days.filter(d=>d<T&&!brOf(d)&&!dn.some(x=>x.date==d)).length,load=Math.round(sum(dn.map(ld)));
  const lbl=weekOff==0?'Ten tydzień':weekOff==-1?'Poprzedni tydzień':weekOff==1?'Następny tydzień':`${Math.abs(weekOff)} tyg. ${weekOff<0?'temu':'później'}`;
  let h=`<div class="card"><div class="wkhead"><button data-act="wkprev" aria-label="Poprzedni tydzień"${w0<=wk(minD0())?' disabled':''}>‹</button><div><h2>${lbl}</h2><label class="wkpick" title="Wybierz datę z kalendarza"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg><span>${fd(w0)}–${fd(w6)}</span><input type="date" id="wkdate" aria-label="Przejdź do tygodnia z datą" min="${minD0()}" max="${T}" value="${w0>T?T:w0<minD0()?minD0():w0}"></label>${weekOff?`<button class="sm wktoday" data-act="wktoday">Wróć do dziś</button>`:''}</div><button data-act="wknext" aria-label="Następny tydzień">›</button></div>
- <p class="wksum"><b>${dn.length}</b> ${plS(dn.length)}${days[0]<T?`, <b>${restDays}</b> ${restDays==1?'dzień':'dni'} odpoczynku`:''}</p>${(()=>{const mins=sum(dn.map(x=>x.min)),av=avgWeek(w0);return mins?`<p class="wksum" style="margin-top:-6px">Trening <b>${hm(mins)}</b>${av&&load?`, obciążenie <b>${Math.round(load/av*100)}%</b> Twojego średniego tygodnia${w6>=T&&w0<=T?' (na razie)':''}`:''}</p>`:''})()}<div class="wk">`;
+ <p class="wksum"><b>${dn.length}</b> ${plS(dn.length)}${days[0]<T?`, <b>${restDays}</b> ${restDays==1?'dzień':'dni'} odpoczynku`:''}${brD?`, <b>${brD}</b> ${brD==1?'dzień':'dni'} przerwy`:''}</p>${(()=>{const mins=sum(dn.map(x=>x.min)),av=avgWeek(w0);return mins?`<p class="wksum" style="margin-top:-6px">Trening <b>${hm(mins)}</b>${av&&load?`, obciążenie <b>${Math.round(load/av*100)}%</b> Twojego średniego tygodnia${w6>=T&&w0<=T?' (na razie)':''}`:''}</p>`:''})()}<div class="wk">`;
  const GC={G:'var(--c1)',Y:'var(--c2)',R:'var(--c3)'};
  days.forEach(d=>{const p=phAny(d),ss=inW.filter(x=>x.date==d).sort((a,b)=>(a.status=='plan')-(b.status=='plan')),past=d<T,today=d==T;
   const chips=ss.map(x=>{const isP=x.status=='plan',act='view';
    return `<button class="wchip${isP?' planned':''}${isP&&past?' late':''}" style="--tc:${tcv(x.type)}" data-act="${act}" data-id="${x.id}">${!isP&&x.day?`<span class="dot" style="background:${GC[x.day]}"></span>`:''}${esc(x.type)}${x.min?` <span class="mut">${x.min}′</span>`:''}${!isP?drB(x)+accB(x):''}${isP?` <span class="mut">${past?'zaległa':'plan'}</span>`:''}</button>`}).join('');
-  h+=`<div class="wrow${today?' today':''}${ss.length?' has':d<T?' rest':d>T?' fut':''}" style="--pc:${p?`var(${p.c})`:'transparent'};--tc:${ss.length?tcv(ss[0].type):'var(--mut)'}"><div class="wday"><b>${WD[D(d).getDay()]}</b><span>${fd(d)}</span></div><div class="wchips">${chips||`<span class="mut wrest">${d<T?'Odpoczynek':''}</span>`}</div>${d<=T?`<button class="wadd" data-act="addday" data-date="${d}" aria-label="Zapisz sesję ${fd(d)}">+</button>`:'<span></span>'}</div>`});
+  h+=`<div class="wrow${today?' today':''}${ss.length?' has':d<T?' rest':d>T?' fut':''}" style="--pc:${p?`var(${p.c})`:'transparent'};--tc:${ss.length?tcv(ss[0].type):'var(--mut)'}"><div class="wday"><b>${WD[D(d).getDay()]}</b><span>${fd(d)}</span></div><div class="wchips">${(()=>{const b=brOf(d);const bl=b?`<button class="wbrk" data-act="bredit" data-id="${b.id}" style="--bk:var(${BK[b.kind][1]})">${BK[b.kind][0]}</button>`:'';return chips?chips+bl:bl||`<span class="mut wrest">${d<T?'Odpoczynek':''}</span>`})()}</div>${d<=T?`<button class="wadd" data-act="addday" data-date="${d}" aria-label="Zapisz sesję ${fd(d)}">+</button>`:'<span></span>'}</div>`});
  return h+'</div></div>'}
-function planView(){$('#v-plan').innerHTML=weekView()}
+function planView(){$('#v-plan').innerHTML=`<div class="calsw" role="group" aria-label="Widok"><button data-act="calmode" data-v="week" aria-pressed="${CAL.mode=='week'}">Tydzień</button><button data-act="calmode" data-v="month" aria-pressed="${CAL.mode=='month'}">Miesiąc</button></div>`+(CAL.mode=='month'?`<div class="card">${monthView()}</div>`:weekView())}
 
 /* ---------- charts ---------- */
 const plTries=n=>n==1?'próba':(n%10>=2&&n%10<=4&&(n%100<12||n%100>14))?'próby':'prób';
@@ -858,7 +890,7 @@ function lines(sr,l){const W=320,H=150,n=l.length,v=sr.flat().filter(x=>x!=null)
 
 /* ACWR: ostre = średnia z 7 dni, przewlekłe = EWMA 28 dni, przewlekłe liczone do dnia sprzed ostatniego tygodnia, więc tydzień ostry nie wchodzi do średniej */
 function acwrCalc(){const dn=done(),L={};dn.forEach(x=>L[x.date]=(L[x.date]||0)+ld(x));const st=dn.reduce((m,x)=>!m||x.date<m?x.date:m,'');
- const out={today:null,pts:[],lab:[],days:st?diff(st,T)+1:0,gaps:0,cov:0};if(!st)return out;const cv=d=>[1,2,3,4].filter(k=>{for(let j=0;j<7;j++)if(L[add(d,-7*k-j)]!=null)return true;return false}).length;
+ const out={today:null,pts:[],lab:[],days:st?diff(st,T)+1:0,gaps:0,cov:0};if(!st)return out;const cv=d=>[1,2,3,4].filter(k=>{let bd=0;for(let j=0;j<7;j++){const q=add(d,-7*k-j);if(L[q]!=null)return true;if(brOf(q))bd++}return bd>=3}).length;
  const lc=2/29;let seed=0;for(let i=0;i<28;i++)seed+=L[add(st,i)]||0;seed/=28;
  let c=seed;const Cs={},R={};for(let d=st,i=0;d<=T;d=add(d,1),i++){const l=L[d]||0;let a=0;for(let j=0;j<7;j++)a+=L[add(d,-j)]||0;a/=7;c+=lc*(l-c);Cs[d]=c;const c7=Cs[add(d,-7)];if(i>=34&&c7>0&&cv(d)>=3)R[d]=a/c7}
  out.today=R[T]??null;out.cov=cv(T);for(let i=55;i>=0;i--){const d=add(T,-i);out.pts.push(R[d]??null);out.lab.push(i==0?'dziś':i%7==0?fd(d):'')}
@@ -900,7 +932,8 @@ function prog(){const dn=done();let h='';
   acwr=`<div class="big">${r==null?'ACWR –':'ACWR '+r.toFixed(2).replace('.',',')}</div><p class="mut">${zone}</p>${r!=null&&A.pts.filter(x=>x!=null).length>1?acwrChart(A.pts,A.lab):''}${r!=null?`<p class="mut">Ostatnie 7 dni w porównaniu z 4 tygodniami wcześniej. Nowsze dni ważą więcej. Sesje bez czasu liczę szacunkowo (skały wg długości dnia, Tindeq 20 min).${A.gaps?` Brak wpisów w ${A.gaps} z 4 ostatnich tygodni: jeśli wtedy trenowałeś, wynik może być zawyżony.`:''}</p>`:''}`}
  const L7=k=>sum(dn.filter(x=>{const d=diff(x.date,T);return d>=k*7&&d<k*7+7}).map(ld)),w0l=L7(0),w1l=L7(1),wd=w1l?Math.round((w0l/w1l-1)*100):null;
  const wow=r1!=T?'':wd==null?(w0l?'<p class="wow">Ostatnie 7 dni: brak treningów w 7 dniach wcześniej, nie ma z czym porównać.</p>':''):`<p class="wow${wd>20?' up':''}"><b>${wd>0?'+':''}${wd}%</b> obciążenia w ostatnich 7 dniach względem 7 dni wcześniej.${wd>20?' To duży skok, w kolejnym tygodniu lepiej nie dokładać.':wd<-30?' Wyraźnie lżej, np. deload albo przerwa.':''}</p>`;
- h+=`<div class="card"><h2>Obciążenie tygodniowe</h2>${wow}${bars(by.map(a=>sum(a.map(ld))),lab,col,'Obciążenie tygodniowe',av)}<p class="mut">${av?'Procent Twojego średniego tygodnia (przerywana linia). Obciążenie to czas sesji razy RPE.':'Czas × RPE. Gdy zbierze się więcej tygodni, słupki pokażą procent Twojej średniej.'} Czerwone słupki to obecna faza${ws.some(w=>{const p=phAny(add(w,3));return p&&p.dl})?', ciemne to deload':''}.</p>${acwr}</div>`;
+ const pbr=brks().filter(b=>b.s<=r1&&brEnd(b)>=r0);
+ h+=`<div class="card"><h2>Obciążenie tygodniowe</h2>${wow}${bars(by.map(a=>sum(a.map(ld))),lab,col,'Obciążenie tygodniowe',av)}<p class="mut">${av?'Procent Twojego średniego tygodnia (przerywana linia). Obciążenie to czas sesji razy RPE.':'Czas × RPE. Gdy zbierze się więcej tygodni, słupki pokażą procent Twojej średniej.'} Czerwone słupki to obecna faza${ws.some(w=>{const p=phAny(add(w,3));return p&&p.dl})?', ciemne to deload':''}.</p>${pbr.length?`<p class="mut">Przerwy w tym okresie: ${pbr.map(brLbl).join(', ')}.</p>`:''}${acwr}</div>`;
  const rv=by.map(a=>{const r=a.filter(x=>x.rpe);return r.length?sum(r.map(x=>x.rpe))/r.length:null}),rs=ss.filter(x=>x.rpe);
  if(rv.some(x=>x!=null))h+=`<div class="card"><h2>Trend RPE</h2>${rpeChart(rv,lab)}<p class="mut">Średnie RPE w tygodniu z ocenionych sesji.${rs.length?` W tym okresie średnio ${(sum(rs.map(x=>x.rpe))/rs.length).toFixed(1)}.`:''}</p></div>`;
  const pz=new Map();let pzN=0;ss.forEach(x=>{const ks=new Set([...(x.painBz||[]),...(x.painAz||[])]);if(ks.size)pzN++;ks.forEach(k=>pz.set(k,(pz.get(k)||0)+1))});
@@ -1042,6 +1075,37 @@ function phSheet(p,isNew){openSheet(`<div class="sh-top"><div><p class="mut">${e
  <div class="row"><div><label for="pe-s">Początek</label><input id="pe-s" type="date" value="${p.s}"></div><div><label for="pe-e">Koniec</label><input id="pe-e" type="date" value="${p.e}"></div></div>
  <label for="pe-note">Wnioski po fazie</label><textarea id="pe-note" rows="5" placeholder="Co działało, co zmienić w następnym cyklu">${esc(p.note)}</textarea>
  <div class="btns"><button class="go" data-act="phsave" data-id="${p.id}"${isNew?' data-new="1"':''}>Zapisz fazę</button>${isNew?'':`<button data-act="csvph" data-id="${p.id}" style="flex:0 0 auto">Eksport do Excela</button><button class="rmb" style="flex:0 0 auto" data-act="phdel" data-id="${p.id}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>Usuń fazę</button>`}</div>`);if(isNew)setTimeout(()=>$('#pe-n').focus(),30)}
+/* ---------- przerwy (choroba, kontuzja, wyjazd) i widok miesiąca ---------- */
+const BK={sick:['Choroba','--c7'],injury:['Kontuzja','--c3'],trip:['Wyjazd','--c4'],other:['Inna przerwa','--c8']};
+const brks=()=>C.breaks||(C.breaks=[]);
+const brEnd=b=>b.e||(b.s>T?b.s:T);
+const brOf=d=>brks().find(b=>d>=b.s&&d<=brEnd(b));
+const brDays=(a,z)=>{let n=0;for(let d=a;d<=z;d=add(d,1))if(brOf(d))n++;return n};
+const brLbl=b=>`${BK[b.kind]?BK[b.kind][0]:'Przerwa'} ${fd(b.s)}${b.e?(b.e!=b.s?'–'+fd(b.e):''):'–dziś'}`;
+const MN=['styczeń','luty','marzec','kwiecień','maj','czerwiec','lipiec','sierpień','wrzesień','październik','listopad','grudzień'];
+let CAL={mode:'week',m:T.slice(0,7),sel:null};
+function monthView(){const [y,mm]=CAL.m.split('-').map(Number),first=`${CAL.m}-01`,last=add(`${mm==12?y+1:y}-${String(mm==12?1:mm+1).padStart(2,'0')}-01`,-1);
+ const g0=wk(first),cells=[];for(let d=g0;d<=last||cells.length%7;d=add(d,1))cells.push(d);
+ const dn=done(),inM=brks().filter(b=>b.s<=last&&brEnd(b)>=first).sort((a,b)=>a.s.localeCompare(b.s));
+ const canPrev=CAL.m>minD0().slice(0,7);
+ let h=`<div class="mhead"><button data-act="mprev" aria-label="Poprzedni miesiąc"${canPrev?'':' disabled'}>‹</button><h2>${MN[mm-1]} ${y}</h2><button data-act="mnext" aria-label="Następny miesiąc">›</button></div>`;
+ h+=CAL.sel?`<div class="msel"><span>${CAL.sel.s?`Początek: <b>${fdw(CAL.sel.s)}</b>. Stuknij ostatni dzień (albo ten sam).`:'Stuknij pierwszy dzień przerwy (choroba, kontuzja, wyjazd).'}</span><button class="sm" data-act="mselx">Anuluj</button></div>`:`<button class="phadd mbtn" data-act="msel">+ Zaznacz przerwę</button>`;
+ h+=`<div class="mgrid" role="grid">${['nd','pn','wt','śr','cz','pt','sb'].map(x=>`<span class="mwd">${x}</span>`).join('')}`;
+ cells.forEach(d=>{const inMo=d.slice(0,7)==CAL.m,b=brOf(d),ss=dn.filter(x=>x.date==d),k=b&&BK[b.kind]?BK[b.kind][1]:'';
+  const st=b?(d==b.s||D(d).getDay()==0?' bs':'')+(d==brEnd(b)||D(d).getDay()==6?' be':''):'';
+  h+=`<button class="mday${inMo?'':' out'}${d==T?' today':''}${d>T?' fut':''}${b?' bk'+st:''}${CAL.sel&&CAL.sel.s==d?' pick':''}" data-act="mday" data-date="${d}"${k?` style="--bk:var(${k})"`:''} aria-label="${fdw(d)}${b?', '+BK[b.kind][0]:''}${ss.length?', '+ss.length+' '+plS(ss.length):''}"><span class="mdn">${+d.slice(8)}</span><span class="mdots">${ss.slice(0,3).map(x=>`<i style="background:${tcv(x.type)}"></i>`).join('')}</span></button>`});
+ h+='</div>';
+ h+=inM.length?`<ul class="mlist">${inM.map(b=>`<li><button data-act="bredit" data-id="${b.id}"><i style="background:var(${BK[b.kind][1]})"></i><span><b>${BK[b.kind][0]}</b> ${fd(b.s)}${b.e?(b.e!=b.s?'–'+fd(b.e):''):'– trwa'} · ${diff(b.s,brEnd(b))+1} ${diff(b.s,brEnd(b))==0?'dzień':'dni'}${b.note?` · <span class="mut">${esc(b.note)}</span>`:''}</span></button></li>`).join('')}</ul>`:`<p class="mut mnote">Kolorowe kropki to sesje. Stuknij dzień, żeby przejść do jego tygodnia.</p>`;
+ return h}
+function brSheet(b,isNew){const k=b.kind||'sick';openSheet(`<div class="sh-top"><div><p class="mut">Przerwa w treningu</p><h2>${isNew?'Nowa przerwa':esc(BK[k][0])}</h2></div>${XBTN}</div>
+ <label>Powód</label><div class="brk-k">${Object.entries(BK).map(([id,[n,c]])=>`<button type="button" data-bk="${id}" aria-pressed="${id==k}" style="--bk:var(${c})">${n}</button>`).join('')}</div>
+ <div class="row"><div><label for="br-s">Początek</label><input id="br-s" type="date" value="${b.s}"></div><div><label for="br-e">Koniec</label><input id="br-e" type="date" value="${b.e||''}"${b.e?'':' disabled'}></div></div>
+ <label class="chk"><input type="checkbox" id="br-on"${b.e?'':' checked'}> Nadal trwa</label>
+ <label for="br-n">Notatka <span class="mut">opcjonalnie, np. grypa, gorączka</span></label><input id="br-n" value="${esc(b.note)}" autocomplete="off">
+ <p class="mut">Przerwa nie jest liczona jako brak wpisów. Spadek obciążenia w tym czasie jest prawdziwy i tak też liczę ACWR.</p>
+ <div class="btns"><button class="go" data-act="brsave" data-id="${b.id||''}">Zapisz przerwę</button>${isNew?'':`<button class="rmb" style="flex:0 0 auto" data-act="brdel" data-id="${b.id}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>Usuń</button>`}</div>`)}
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-bk]');if(!b)return;b.parentNode.querySelectorAll('[data-bk]').forEach(x=>x.setAttribute('aria-pressed',x==b))});
+document.addEventListener('change',e=>{if(e.target.id=='br-on'){const i=$('#br-e');i.disabled=e.target.checked;if(!e.target.checked&&!i.value)i.value=T<($('#br-s').value||T)?$('#br-s').value:T}});
 function dlSheet(d,isNew,info){const cy=ecy();openSheet(`<div class="sh-top"><div><p class="mut">${esc(cy.name)}</p><h2>${isNew?'Nowy deload':esc(phLbl(d))}</h2></div>${XBTN}</div>
  <p class="mut">Sesje z tych dni liczą się do deloadu, a nie do fazy. Dzięki temu statystyki fazy pokazują tylko właściwy trening.</p>
  <div class="row"><div><label for="dl-s">Początek</label><input id="dl-s" type="date" value="${d.s}"></div><div><label for="dl-e">Koniec</label><input id="dl-e" type="date" value="${d.e}"></div></div>
@@ -1137,6 +1201,8 @@ function closeSheet(){$('#sheet').hidden=true;document.body.style.overflow=''}
 /* ---------- navigation & events ---------- */
 function homeView(){const el=$('#v-home');if(!el)return;const dn=done().sort((a,b)=>b.date.localeCompare(a.date)||b.id.localeCompare(a.id)),last=dn[0];let h='';
  h+=hasDraft()?`<button class="cta" data-act="newses"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>Dokończ sesję</button><div class="draftnote"><span>Masz niezapisaną sesję. Wpisane dane są bezpieczne.</span><button class="sm" data-act="dropdraft">Odrzuć</button></div>`:`<button class="cta" data-act="newses"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Zapisz sesję</button>`;
+ {const ab=brOf(T);if(ab)h+=`<div class="card brcard" style="--bk:var(${BK[ab.kind][1]})"><div><b>${BK[ab.kind][0]}</b> od ${fdw(ab.s)} · ${diff(ab.s,T)+1}. dzień${ab.note?` · <span class="mut">${esc(ab.note)}</span>`:''}</div><div class="btns"><button class="sm" data-act="brend" data-id="${ab.id}">Zakończ przerwę</button><button class="sm" data-act="bredit" data-id="${ab.id}">Edytuj</button></div></div>`;
+  else{const rb=brks().filter(b=>b.e&&b.e<T&&diff(b.e,T)<=7&&diff(b.s,b.e)>=3).sort((a,b)=>b.e.localeCompare(a.e))[0];if(rb)h+=`<div class="card warn"><b>Wracasz po przerwie</b> (${BK[rb.kind][0].toLowerCase()}, ${diff(rb.s,rb.e)+1} dni). Pierwsze sesje zrób lżej i krócej niż przed przerwą, a obciążenie zwiększaj stopniowo.</div>`}}
  const bs=dn.filter(x=>x.before!=null).slice(0,2);if(bs.length==2&&bs.every(x=>x.before>=2))h+='<div class="card warn"><b>Dwie ostatnie sesje zaczynałeś zmęczony</b> (2 lub więcej w skali 1–5). Następną zrób według parametrów z poprzedniego tygodnia, bez dokładania.</div>';
  {const r5=dn.slice(0,5),pc=new Map();r5.forEach(x=>new Set([...(x.painBz||[]),...(x.painAz||[])]).forEach(k=>pc.set(k,(pc.get(k)||0)+1)));const rp=[...pc].filter(e=>e[1]>=3).sort((a,b)=>b[1]-a[1]);
   if(rp.length)h+=`<div class="card warn"><b>Ten sam ból się powtarza:</b> ${rp.slice(0,2).map(([k,n])=>`${esc(hzParts(k).short)} (${n} z ${r5.length} ostatnich sesji)`).join(', ')}. Odpuść tej części ręki, a jeśli ból nie mija, skonsultuj się z fizjoterapeutą.</div>`}
@@ -1230,6 +1296,20 @@ document.addEventListener('click',e=>{const t=e.target;let b;
  else if(a=='csvcyc'){const cy=ecy(),ps=[...cy.phases].sort(bySD);if(ps.length)xlsxDownload('dziennik-'+cy.name,expData(cy,ps))}
  else if(a=='csvph'){const cy=ecy(),p=cy.phases.find(q=>q.id==id);if(p)xlsxDownload('dziennik-'+cy.name+'-'+phLbl(p),expData(cy,[p]))}
  else if(a=='cysave'){const cy=ecy();cy.name=$('#cy-name').value.trim()||'Cykl';cy.goal=$('#cy-goal').value.trim();cy.goalDate=$('#cy-gdate').value;closeSheet();putC(1);toast('Zapisano cykl')}
+ else if(a=='calmode'){CAL.mode=b.dataset.v;CAL.sel=null;planView()}
+ else if(a=='mprev'||a=='mnext'){const [y,m]=CAL.m.split('-').map(Number),n=new Date(Date.UTC(y,m-1+(a=='mnext'?1:-1),1));CAL.m=n.toISOString().slice(0,7);planView()}
+ else if(a=='msel'){CAL.sel={s:null};planView()}
+ else if(a=='mselx'){CAL.sel=null;planView()}
+ else if(a=='mday'){const d=b.dataset.date;if(CAL.sel){if(!CAL.sel.s){CAL.sel.s=d;planView()}else{let s0=CAL.sel.s,e0=d;if(e0<s0)[s0,e0]=[e0,s0];CAL.sel=null;planView();brSheet({s:s0,e:e0,kind:'sick',note:''},true)}}else{const bb=brOf(d);if(bb)brSheet(bb,false);else{weekOff=Math.round(diff(wk(T),wk(d))/7);CAL.mode='week';planView()}}}
+ else if(a=='bredit'){const bb=brks().find(x=>x.id==id);if(bb)brSheet(bb,false)}
+ else if(a=='brnew'){brSheet({s:T,e:'',kind:'sick',note:''},true)}
+ else if(a=='brsave'){const s0=$('#br-s').value,on=$('#br-on').checked,e0=on?'':$('#br-e').value,k=($('[data-bk][aria-pressed=true]')||{}).dataset?.bk||'sick';
+  if(!s0){toast('Wybierz początek przerwy.');return}if(e0&&e0<s0){toast('Koniec musi być po początku.');return}
+  const ov=brks().find(x=>x.id!=id&&s0<=brEnd(x)&&(e0||T)>=x.s);if(ov){toast(`Ten okres nachodzi na: ${brLbl(ov)}.`);return}
+  const o={id:id||uid(),kind:k,s:s0,e:e0,note:$('#br-n').value.trim()};if(id){const i=brks().findIndex(x=>x.id==id);brks()[i]=o}else brks().push(o);
+  closeSheet();putC(1);toast('Zapisano przerwę')}
+ else if(a=='brdel'){if(b.dataset.arm){C.breaks=brks().filter(x=>x.id!=id);closeSheet();putC(1);toast('Usunięto przerwę')}else{b.dataset.arm=1;b.lastChild.textContent='Na pewno?'}}
+ else if(a=='brend'){const bb=brks().find(x=>x.id==id);if(bb){bb.e=bb.s<T?add(T,-1):T;putC(1);toast(`Zakończono: ${brLbl(bb)}`)}}
  else if(a=='dlnew'){const cy=ecy(),p=cy.phases.find(q=>q.id==id);if(!p)return;const nx=[...cy.phases].sort(bySD).find(q=>q.s>p.e);let s0,e0;
   if(!nx||diff(p.e,nx.s)>1){s0=add(p.e,1);e0=add(s0,6);if(nx&&e0>=nx.s)e0=add(nx.s,-1)}else{e0=p.e;s0=add(p.e,-6);if(s0<=p.s)s0=add(p.s,1)}
   dlSheet({id:'',s:s0,e:e0},true,dlInfoTxt(cy,s0,e0,''))}
